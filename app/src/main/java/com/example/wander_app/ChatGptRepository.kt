@@ -19,7 +19,7 @@ class ChatGptRepository() {
     val session: MutableList<ChatMessage>
 
     init {
-        apiKey = "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"
+        apiKey = ""
         urlEndPoint = "https://api.openai.com/v1/chat/completions"
         val jsonString =
             """
