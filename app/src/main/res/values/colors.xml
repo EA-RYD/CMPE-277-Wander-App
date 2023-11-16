@@ -2,4 +2,34 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="gray">#9E9E9E</color>
+    <color name="darkGray">#616161</color>
+
+
+    <!-- Primary colors -->
+    <color name="colorPrimary">#6200EE</color> <!-- Indigo 500 -->
+    <color name="colorPrimaryDark">#3700B3</color> <!-- Indigo 700 -->
+    <color name="colorPrimaryLight">#BB86FC</color> <!-- Purple 200 -->
+
+    <!-- Secondary colors -->
+    <color name="colorSecondary">#03DAC5</color> <!-- Teal 200 -->
+    <color name="colorSecondaryDark">#018786</color> <!-- Teal 700 -->
+    <color name="colorSecondaryLight">#B2DFDB</color> <!-- Teal 100 -->
+
+    <!-- Accent color -->
+    <color name="colorAccent">#03DAC5</color> <!-- Can be the same as colorSecondary -->
+
+    <!-- Neutral colors for background, surface, and text -->
+    <color name="colorBackground">#FFFFFF</color> <!-- White -->
+    <color name="colorSurface">#FFFFFF</color> <!-- White -->
+    <color name="colorOnPrimary">#FFFFFF</color> <!-- White -->
+    <color name="colorOnSecondary">#000000</color> <!-- Black -->
+    <color name="colorOnBackground">#000000</color> <!-- Black -->
+    <color name="colorOnSurface">#000000</color> <!-- Black -->
+
+    <!-- Error colors -->
+    <color name="colorError">#B00020</color> <!-- Red 700 -->
+    <color name="colorOnError">#FFFFFF</color> <!-- White -->
+
+
 </resources>
