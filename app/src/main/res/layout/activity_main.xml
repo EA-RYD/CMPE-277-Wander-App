@@ -365,5 +365,16 @@
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
+
+    <Button
+        android:id="@+id/DetailsTest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Button"
+        android:onClick="onClickButton"
+        tools:layout_editor_absoluteX="43dp"
+        tools:layout_editor_absoluteY="148dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/etLocation"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
 

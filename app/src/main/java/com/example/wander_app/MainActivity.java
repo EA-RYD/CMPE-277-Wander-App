@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -113,5 +114,10 @@ public class MainActivity extends AppCompatActivity {
         Log.i("MainActivity", "AskForPermission: " + "Asking for audio permission");
         requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO},1);
 
+    }
+
+    public void onClickButton (View view) {
+        Intent detailsIntent = new Intent(MainActivity.this, DetailsActivity.class);
+        startActivity(detailsIntent);
     }
 }

@@ -31,5 +31,10 @@
     <color name="colorError">#B00020</color> <!-- Red 700 -->
     <color name="colorOnError">#FFFFFF</color> <!-- White -->
 
+    <color name="Grey">#c3c3c3 </color>
+    <color name="lightGrey">#f2f2f2</color>
+    <color name="mediumLightGrey">#d9d9d9</color>
+    <color name="darkGrey">#a6a6a6</color>
+    <color name="blue">#2977E8</color>
 
 </resources>
