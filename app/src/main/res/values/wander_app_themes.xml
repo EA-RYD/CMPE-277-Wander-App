@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Base application theme -->
+    <style name="WanderAppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <!-- Style for EditText -->
+    <style name="WanderAppTheme.EditText" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textColorHint">@color/gray</item>
+    </style>
+
+    <!-- Style for Button -->
+    <style name="WanderAppTheme.Button" parent="Widget.MaterialComponents.Button">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:backgroundTint">@color/colorPrimary</item>
+    </style>
+    <style name="WanderAppTheme.Button.GrayOutline" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:textColor">@color/darkGray</item>
+        <item name="strokeColor">@color/gray</item>
+        <item name="backgroundColor">@color/white</item>
+        <item name="cornerRadius">8dp</item>
+        <item name="strokeWidth">2dp</item>
+    </style>
+
+
+
+    <!-- Add more styles for other widgets like Maps, etc. -->
+    <!-- For Map, styling is generally done through the Google Maps API rather than XML. -->
+
+</resources>
