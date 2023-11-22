@@ -19,7 +19,9 @@ class ChatGptRepository() {
     val session: MutableList<ChatMessage>
 
     init {
+
         apiKey = ""
+
         urlEndPoint = "https://api.openai.com/v1/chat/completions"
         val jsonString =
             """
@@ -32,7 +34,7 @@ class ChatGptRepository() {
                         },
                         {
                             "role": "system",
-                            "content": "Your Json respond should include 6 suggestions, and for each suggestion always include name, address, and longitude and latitude of the place and a short description."
+                            "content": "Your Json respond should include exact 6 suggestions, and for each suggestion always include name, address, and longitude and latitude of the place and a short description(no more than 20 words)."
                         },
                         {
                             "role": "system",

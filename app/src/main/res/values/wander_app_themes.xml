@@ -28,6 +28,8 @@
         <item name="strokeWidth">2dp</item>
     </style>
 
+
+
     <!-- Add more styles for other widgets like Maps, etc. -->
     <!-- For Map, styling is generally done through the Google Maps API rather than XML. -->
 
