@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">wander-app</string>
+    <string name="bt_text_detail">Details</string>
+    <string name="calendar_button_description">Calendar button icon</string>
 </resources>
