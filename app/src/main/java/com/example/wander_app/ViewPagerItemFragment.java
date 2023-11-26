@@ -16,7 +16,7 @@ import com.example.wander_app.models.VacationPicture;
 
 public class ViewPagerItemFragment extends Fragment {
     public ImageView imageView;
-    private String title = "test";
+    private TextView caption;
     private VacationPicture pic;
 
     public static ViewPagerItemFragment getInstance(VacationPicture picture) {
@@ -47,7 +47,7 @@ public class ViewPagerItemFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         imageView = view.findViewById(R.id.image);
-        //title = view.findViewById(R.id.title);
+        caption = view.findViewById(R.id.imageTitle);
         init();
     }
 
@@ -55,11 +55,7 @@ public class ViewPagerItemFragment extends Fragment {
         if (pic != null) {
             RequestOptions options = new RequestOptions().placeholder(R.drawable.ic_launcher_background);
             Glide.with(getActivity()).setDefaultRequestOptions(options).load(pic.getImage()).into(imageView);
-//            GlideApp.with(getActivity())
-//                    .load(pic.getImage())
-//                    .placeholder(R.drawable.ic_launcher_background)
-//                    .into(imageView);
-            //title.setText(pic.getTitle());
+            caption.setText(pic.getTitle());
         }
     }
 }
