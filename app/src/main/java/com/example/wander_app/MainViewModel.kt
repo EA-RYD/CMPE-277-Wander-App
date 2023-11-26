@@ -1,12 +1,14 @@
 package com.example.wander_app
 
+import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.tutorial.chatgptapp.ChatGptRepository
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
+import com.tutorial.chatgptapp.ChatGptRepository
 import kotlinx.coroutines.launch
+import java.io.UnsupportedEncodingException
 
 
 class MainViewModel : ViewModel() {
@@ -29,7 +31,9 @@ class MainViewModel : ViewModel() {
                 val gptResponse = gson.fromJson(response.value, GptResponse::class.java)
                 Log.i(">>", "suggestions: ${gptResponse.choices[0].message.content}")
                 val suggestions = gson.fromJson(gptResponse.choices[0].message.content, SuggestionList::class.java)
+                updateAddressInSuggestions(suggestions)
                 suggestionList.value = suggestions
+                //call api to get pictures
                 Log.i(">>", "suggestions: ${suggestionList.value}")
 
             } catch (e: Exception) {
@@ -40,4 +44,5 @@ class MainViewModel : ViewModel() {
     public fun updateMessage(newMessage:String) {
         gpt.addMessage(newMessage)
     }
+
 }

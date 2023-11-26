@@ -24,6 +24,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -34,6 +35,15 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private MainViewModel viewModel;
+
+    private String tripAdvisorKey = "DA033993B5A145549DCEF7D9486BBE21";
+    private final String testCoords = "35.71007° N, 139.81065° W";
+    private String idLocation;
+    private String nameLocation = "test";
+    private String addressLocation = "test";
+
+    private final String TRIP_ADVISOR_LOCATION_ENDPOINT = "https://api.content.tripadvisor.com/api/v1/location";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +88,8 @@ public class MainActivity extends AppCompatActivity {
             binding.tvList06Description.setText(suggestionList.getSuggestions().get(5).getDescription());
             binding.tvList06Name.setText(suggestionList.getSuggestions().get(5).getName());
             binding.svSuggestions.setVisibility(View.VISIBLE);
+
+
         });
 
         viewModel.getLocation().observe(this, location -> {
@@ -153,4 +165,23 @@ public class MainActivity extends AppCompatActivity {
         Intent detailsIntent = new Intent(MainActivity.this, DetailsActivity.class);
         startActivity(detailsIntent);
     }
+
+//    private void makeSearchRequest() throws UnsupportedEncodingException {
+//        // Uses Chatgpt coordinates to find location with lowest distance from target
+//        // TODO replace testcoords
+//        Intent intentTA = new Intent(getBaseContext(), APIRequestService.class);
+//
+//        // Making endpoint for search from coordinates
+//        String encodedAddress = "";
+//        String searchEP = TRIP_ADVISOR_LOCATION_ENDPOINT + "/" + "nearby_search?latLong=" + coordEncoder(testCoords) + "&key="
+//                + tripAdvisorKey + "&address=" + encodedAddress + "&language=en";
+//
+//        intentTA.putExtra("callerID", ID);
+//        intentTA.putExtra("apiUrl", searchEP);
+//        intentTA.putExtra("apiType", "TripAdvisor_Search");
+//
+//        // Make request
+//        startService(intentTA);
+//    }
+
 }
