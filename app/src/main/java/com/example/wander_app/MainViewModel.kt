@@ -21,11 +21,9 @@ class MainViewModel : ViewModel() {
         location.value = newLocation
     }
 
-    fun updateMessage(newMessage: String) {
-        Log.i(">>", "new message: $newMessage")
+    fun sendRequest() {
         viewModelScope.launch {
             try {
-                gpt.addMessage(newMessage)
                 response.value = gpt.makeApiRequest()
                 val gson = Gson()
                 val gptResponse = gson.fromJson(response.value, GptResponse::class.java)
@@ -38,5 +36,8 @@ class MainViewModel : ViewModel() {
                 Log.e("MainViewModel", "Error in suspend function", e)
             }
         }
+    }
+    public fun updateMessage(newMessage:String) {
+        gpt.addMessage(newMessage)
     }
 }

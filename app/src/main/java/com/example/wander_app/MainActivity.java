@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -15,6 +16,7 @@ import android.util.Log;
 import android.os.Bundle;
 import android.Manifest;
 import android.view.View;
+import android.widget.DatePicker;
 
 import com.example.wander_app.databinding.ActivityMainBinding;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -22,6 +24,8 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -42,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
 
         binding.btnSendRequest.setOnClickListener(v -> {
             viewModel.updateMessage(binding.etLocation.getText().toString());
+            viewModel.updateMessage(binding.etPreference.getText().toString());
+            viewModel.sendRequest();
         });
 
         binding.btnCurrentLocation.setOnClickListener(v -> {
@@ -49,6 +55,9 @@ public class MainActivity extends AppCompatActivity {
             FindLocation();
         });
 
+        binding.btnCalendar.setOnClickListener(v -> {
+            showDatePickerDialog();
+        });
 
         viewModel.getResponse().observe(this, response -> {
             Log.i("MainActivity", "onCreate: " + response);
@@ -114,6 +123,30 @@ public class MainActivity extends AppCompatActivity {
         Log.i("MainActivity", "AskForPermission: " + "Asking for audio permission");
         requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO},1);
 
+    }
+
+    private void showDatePickerDialog() {
+        // Use the current date as the default date in the picker
+        final Calendar c = Calendar.getInstance();
+        int year = c.get(Calendar.YEAR);
+        int month = c.get(Calendar.MONTH);
+        int day = c.get(Calendar.DAY_OF_MONTH);
+
+
+        DatePickerDialog datePickerDialog = new DatePickerDialog(this,
+                new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                        monthOfYear += 1;
+                        if (monthOfYear > Calendar.DECEMBER) {
+                            monthOfYear = Calendar.JANUARY;
+                            year += 1;
+                        }
+                        Log.i(">>MainActivity", "onDateSet: " + dayOfMonth + "-" + monthOfYear + "-" + year);
+                    }
+                }, year, month, day);
+
+        datePickerDialog.show();
     }
 
     public void onClickButton (View view) {
