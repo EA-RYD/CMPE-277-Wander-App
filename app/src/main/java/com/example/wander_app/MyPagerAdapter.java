@@ -11,7 +11,7 @@ public class MyPagerAdapter extends FragmentStatePagerAdapter {
     private ArrayList<Fragment> mFragments;
 
     public MyPagerAdapter(FragmentManager fm, ArrayList<Fragment> fragments) {
-        super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT); // Note the change here
+        super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
         mFragments = fragments;
     }
 
