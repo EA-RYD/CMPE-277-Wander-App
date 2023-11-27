@@ -20,6 +20,7 @@ import android.util.Log;
 import android.os.Bundle;
 import android.Manifest;
 import android.view.View;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -54,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
     private ImageView[] imageViews;
     private TextView[] textViews;
+
     private final String TRIP_ADVISOR_LOCATION_ENDPOINT = "https://api.content.tripadvisor.com/api/v1/location";
 
 
@@ -86,6 +88,21 @@ public class MainActivity extends AppCompatActivity {
                 (binding.tvList06Name)
         };
 
+        Button[] buttons = new Button[]{
+                binding.btList01,
+                binding.btList02,
+                binding.btList03,
+                binding.btList04,
+                binding.btList05,
+                binding.btList06
+        };
+
+        for (Button button : buttons) {
+            button.setOnClickListener(v -> {
+                // Handle button click
+                onButtonClick(v);
+            });
+        }
 
 
         binding.btnSendRequest.setOnClickListener(v -> {
@@ -155,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 0; i < taSearchResult.getSearchItems().size(); i++) {
                 TASearchItem item = taSearchResult.getSearchItems().get(i);
                 String locationId = item.getLocationId();
+//                taPhotoItems[i].setLocationId(locationId);
                 String taPicEndpoint = createTaEndpoint("photos", locationId);
                 Log.i(">>MainActivity", "Call TA Pic Endpoint: " + taPicEndpoint);
                 Intent intentTA = new Intent(getBaseContext(), APIRequestService.class);
@@ -242,6 +260,33 @@ public class MainActivity extends AppCompatActivity {
         startActivity(detailsIntent);
     }
 
+    private void onButtonClick(View v) {
+        String btnId = String.valueOf(v.getId());
+
+        if (btnId.length() >= 1) {
+            String lastChar = btnId.substring(btnId.length() - 1);
+            try {
+                int id = Integer.parseInt(lastChar);
+                Log.i(">>MainActivity", "Clicked Button ID: " + id);
+                // Open details activity
+                Intent detailsIntent = new Intent(MainActivity.this, DetailsActivity.class);
+                Log.i(">>MainActivity", "onButtonClick: location_id " + viewModel.getTaPhotoResult().getValue().get(id - 1).getLocationId());
+                Log.i(">>MainActivity", "onButtonClick: response_string " + viewModel.getTaPhotoResult().getValue().get(id - 1).getResponseString());
+                detailsIntent.putExtra("locationId", viewModel.getTaPhotoResult().getValue().get(id - 1).getLocationId());
+                detailsIntent.putExtra("responseString", viewModel.getTaPhotoResult().getValue().get(id - 1).getResponseString());
+                startActivity(detailsIntent);
+
+
+            } catch (NumberFormatException e) {
+                Log.i(">>MainActivity", "onButtonClick: " + "Error parsing button ID");
+            }
+        } else {
+            Log.i(">>MainActivity", "onButtonClick: " + "Error parsing button ID");
+        }
+
+    }
+
+
     private void makeSearchRequest(String longitude, String latitude, String street, String suggestionId) throws UnsupportedEncodingException {
         // Uses ChatGpt coordinates and street address to find location with lowest distance from target
         Intent intentTA = new Intent(getBaseContext(), APIRequestService.class);
@@ -272,8 +317,8 @@ public class MainActivity extends AppCompatActivity {
                 String suggestionId  = intent.getStringExtra("suggestionId");
                 String apiType = intent.getStringExtra("apiType");
                 Log.i(">>Receiver", "Suggestion ID: " + suggestionId);
-                Log.i(">>Receiver", "Response: "+ apiType + response);
                 if (apiType.equals("TripAdvisor_Search")) {
+                    Log.i(">>Receiver", "Search Response: " + response);
                     TASearchItem taSearchItem = new TASearchItem(suggestionId, "0000");
                     if (response.has("data")) {
                         JSONArray dataArray = response.getJSONArray("data");
@@ -284,7 +329,6 @@ public class MainActivity extends AppCompatActivity {
                                 for (int i = 0; i < dataArray.length(); i++) {
                                     JSONObject tempObj = dataArray.getJSONObject(i);
                                     String name = tempObj.getString("name");
-                                    //                            Log.i(">>Receiver", "Name: " + name + " TextViewText: " + textViewText);
                                     if (tempObj.has("name") && (name.equals(textViewText) || name.contains(textViewText) || textViewText.contains(name))) {
                                         Log.i(">>Receiver", "Found matching name: " + tempObj.getString("name"));
                                         data = tempObj;
@@ -300,10 +344,15 @@ public class MainActivity extends AppCompatActivity {
                                 Log.i(">>Receiver", "Search Data: " + data.toString());
                                 if (data.has("location_id")) {
                                     String locationId = data.getString("location_id");
+                                    //update location id in the taPhotoResult
+                                    viewModel.updatePhotoItemLocationId(Integer.parseInt(suggestionId), locationId);
+                                    for (TAPhotoItem item : viewModel.getTaPhotoResult().getValue()){
+                                        Log.d(">>PhotoItemLog", item.toString());
+                                    }
+
                                     taSearchItem.setLocationID(locationId);
                                     viewModel.addSearchItem(taSearchItem);
                                 } else {
-                                    taSearchItem.setLocationID("");
                                     viewModel.addSearchItem(taSearchItem);
                                 }
                             } else {
@@ -315,10 +364,16 @@ public class MainActivity extends AppCompatActivity {
                     Log.i(">>Receiver", "taSearchResult " + viewModel.getTaSearchResult().getValue().toString());
                 }
                 if (apiType.equals("photos")) {
+//                    taPhotoItems[Integer.parseInt(suggestionId)].setResponseString(response.toString());
+                    Log.i(">>Receiver", "Photo Response: " + response);
+                    //update photo item response string
+                    viewModel.updatePhotoItemResponseString(Integer.parseInt(suggestionId), response.toString());
+                    for (TAPhotoItem item : viewModel.getTaPhotoResult().getValue()){
+                        Log.d(">>PhotoItemLog", item.toString());
+                    }
                     if (response.has("data")) {
                         JSONArray dataArray = response.getJSONArray("data");
                         JSONObject data = dataArray.getJSONObject(0);
-
 
                         if (data.has("images")) {
                             JSONObject images = data.getJSONObject("images");
@@ -365,4 +420,6 @@ public class MainActivity extends AppCompatActivity {
     private String createTaEndpoint(String endpointType, String locationId) {
         return TRIP_ADVISOR_LOCATION_ENDPOINT + "/" + locationId + "/" + endpointType + "?key=" + tripAdvisorKey + "&language=en";
     }
+
+
 }

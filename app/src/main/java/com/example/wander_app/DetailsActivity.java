@@ -75,6 +75,7 @@ public class DetailsActivity extends AppCompatActivity {
         pastIntent.getStringExtra("latitude"); // Should be in format of {37.3983° N}
         pastIntent.getStringExtra("longitude");
 
+
         try {
             makeSearchRequest();
         } catch (UnsupportedEncodingException e) {

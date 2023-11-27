@@ -19,10 +19,17 @@ class MainViewModel : ViewModel() {
     val location = MutableLiveData<String>()
     val suggestionList = MutableLiveData<SuggestionList>()
     val taSearchResult = MutableLiveData<TASearchResult>()
-    val taPhotoResult = MutableLiveData<TAPhotoResult>()
+    val taPhotoResult = MutableLiveData<MutableList<TAPhotoItem>>()
+
     init {
         // Initialize with an empty TASearchResult
         taSearchResult.value = TASearchResult()
+    }
+
+    init {
+        // Initialize the MutableLiveData with a MutableList containing 6 TAPhotoItem instances
+        val initialPhotoItems = MutableList(6) { TAPhotoItem() } // Replace TAPhotoItem() with appropriate constructor call if needed
+        taPhotoResult.value = initialPhotoItems
     }
 
     fun addSearchItem(taSearchItem: TASearchItem) {
@@ -57,6 +64,32 @@ class MainViewModel : ViewModel() {
     }
     public fun updateMessage(newMessage:String) {
         gpt.addMessage(newMessage)
+    }
+    fun updatePhotoItemLocationId(suggestionId: Int, locationId: String) {
+        val currentList = taPhotoResult.value ?: mutableListOf()
+
+        if (suggestionId in currentList.indices) {
+            val photoItem = currentList[suggestionId]
+            photoItem.locationId = locationId
+
+            // Update the LiveData
+            taPhotoResult.value = currentList
+        } else {
+            // Handle the case where the suggestionId is out of bounds
+        }
+    }
+    fun updatePhotoItemResponseString(suggestionId: Int, responseString: String) {
+        val currentList = taPhotoResult.value ?: mutableListOf()
+
+        if (suggestionId in currentList.indices) {
+            val photoItem = currentList[suggestionId]
+            photoItem.responseString = responseString
+
+            // Update the LiveData
+            taPhotoResult.value = currentList
+        } else {
+            // Handle the case where the suggestionId is out of bounds
+        }
     }
 
 }
