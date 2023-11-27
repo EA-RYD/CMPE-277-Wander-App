@@ -22,6 +22,7 @@ import android.Manifest;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.example.wander_app.databinding.ActivityMainBinding;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -52,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private String addressLocation = "";
 
     private ImageView[] imageViews;
+    private TextView[] textViews;
     private final String TRIP_ADVISOR_LOCATION_ENDPOINT = "https://api.content.tripadvisor.com/api/v1/location";
 
 
@@ -75,10 +77,23 @@ public class MainActivity extends AppCompatActivity {
                 (binding.ivList06)
         };
 
+        textViews = new TextView[]{
+                (binding.tvList01Name),
+                (binding.tvList02Name),
+                (binding.tvList03Name),
+                (binding.tvList04Name),
+                (binding.tvList05Name),
+                (binding.tvList06Name)
+        };
+
+
 
         binding.btnSendRequest.setOnClickListener(v -> {
             viewModel.updateMessage(binding.etLocation.getText().toString());
-            viewModel.updateMessage(binding.etPreference.getText().toString());
+            String preferenceText = binding.etPreference.getText().toString();
+            if (!preferenceText.isEmpty()) {
+                viewModel.updateMessage(preferenceText);
+            }
             viewModel.sendRequest();
         });
 
@@ -119,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
             //make search request for each suggestion
             for (int i = 0; i < suggestionList.getSuggestions().size(); i++) {
                 try {
-                    String streetAddress = suggestionList.getSuggestions().get(i).get_address().getStreet();
+                    String streetAddress = suggestionList.getSuggestions().get(i).getStreetAddress();
                     String latitude = String.valueOf(suggestionList.getSuggestions().get(i).getLatitude());
                     String longitude = String.valueOf(suggestionList.getSuggestions().get(i).getLongitude());
                     makeSearchRequest(longitude, latitude, streetAddress, String.valueOf(i));
@@ -141,6 +156,7 @@ public class MainActivity extends AppCompatActivity {
                 TASearchItem item = taSearchResult.getSearchItems().get(i);
                 String locationId = item.getLocationId();
                 String taPicEndpoint = createTaEndpoint("photos", locationId);
+                Log.i(">>MainActivity", "Call TA Pic Endpoint: " + taPicEndpoint);
                 Intent intentTA = new Intent(getBaseContext(), APIRequestService.class);
                 intentTA.putExtra("callerID", ID);
                 intentTA.putExtra("apiUrl", taPicEndpoint);
@@ -256,25 +272,54 @@ public class MainActivity extends AppCompatActivity {
                 String suggestionId  = intent.getStringExtra("suggestionId");
                 String apiType = intent.getStringExtra("apiType");
                 Log.i(">>Receiver", "Suggestion ID: " + suggestionId);
-                Log.v(">>Receiver", "Response: " + response.toString());
+                Log.i(">>Receiver", "Response: "+ apiType + response);
                 if (apiType.equals("TripAdvisor_Search")) {
-                    TASearchItem taSearchItem = new TASearchItem(suggestionId, "");
-                    viewModel.addSearchItem(taSearchItem);
+                    TASearchItem taSearchItem = new TASearchItem(suggestionId, "0000");
                     if (response.has("data")) {
                         JSONArray dataArray = response.getJSONArray("data");
-                        JSONObject data = dataArray.getJSONObject(0);
-                        Log.i(">>Receiver", "Search Data: " + data.toString());
-                        if (data.has("location_id")) {
-                            String locationId = data.getString("location_id");
-                            taSearchItem.setLocationID(locationId);
-                        }
+                            if (dataArray.length() > 0) {
+                                JSONObject data = null;
+                                // New logic to find the matching name
+                                String textViewText = textViews[Integer.parseInt(suggestionId)].getText().toString();
+                                for (int i = 0; i < dataArray.length(); i++) {
+                                    JSONObject tempObj = dataArray.getJSONObject(i);
+                                    String name = tempObj.getString("name");
+                                    //                            Log.i(">>Receiver", "Name: " + name + " TextViewText: " + textViewText);
+                                    if (tempObj.has("name") && (name.equals(textViewText) || name.contains(textViewText) || textViewText.contains(name))) {
+                                        Log.i(">>Receiver", "Found matching name: " + tempObj.getString("name"));
+                                        data = tempObj;
+                                        break;
+                                    }
+                                }
+
+                                // Default to first item if no match is found
+                                if (data == null) {
+                                    data = dataArray.getJSONObject(0);
+                                }
+
+                                Log.i(">>Receiver", "Search Data: " + data.toString());
+                                if (data.has("location_id")) {
+                                    String locationId = data.getString("location_id");
+                                    taSearchItem.setLocationID(locationId);
+                                    viewModel.addSearchItem(taSearchItem);
+                                } else {
+                                    taSearchItem.setLocationID("");
+                                    viewModel.addSearchItem(taSearchItem);
+                                }
+                            } else {
+                                taSearchItem.setLocationID("");
+                                viewModel.addSearchItem(taSearchItem);
+                            }
                     }
+
+                    Log.i(">>Receiver", "taSearchResult " + viewModel.getTaSearchResult().getValue().toString());
                 }
                 if (apiType.equals("photos")) {
                     if (response.has("data")) {
                         JSONArray dataArray = response.getJSONArray("data");
                         JSONObject data = dataArray.getJSONObject(0);
-                        Log.i(">>Receiver", "Image Data: " + data.toString());
+
+
                         if (data.has("images")) {
                             JSONObject images = data.getJSONObject("images");
                             if (images.has("medium")) {

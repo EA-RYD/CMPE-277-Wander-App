@@ -21,4 +21,8 @@ class TASearchItem(private val suggestionId: String, private var locationID: Str
 }
 class TASearchResult {
     val searchItems: MutableList<TASearchItem> = mutableListOf()
+    override fun toString(): String {
+        val itemsString = searchItems.joinToString(separator = ", ", prefix = "[", postfix = "]") { it.toString() }
+        return "TASearchResult{searchItems=$itemsString}"
+    }
 }

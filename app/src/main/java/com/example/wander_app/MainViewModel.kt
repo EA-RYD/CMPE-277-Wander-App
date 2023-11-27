@@ -44,10 +44,10 @@ class MainViewModel : ViewModel() {
                 val gson = Gson()
                 val gptResponse = gson.fromJson(response.value, GptResponse::class.java)
                 Log.i(">>", "suggestions: ${gptResponse.choices[0].message.content}")
+
                 val suggestions = gson.fromJson(gptResponse.choices[0].message.content, SuggestionList::class.java)
                 updateAddressInSuggestions(suggestions)
                 suggestionList.value = suggestions
-                //call api to get pictures
                 Log.i(">>", "suggestions: ${suggestionList.value}")
 
             } catch (e: Exception) {
