@@ -43,7 +43,8 @@ public class APIRequestService extends Service {
             final Request apiUrl = buildRequest(intent);
             String callerID = intent.getStringExtra("callerID");
             String apiType = intent.getStringExtra("apiType");
-            new APIRequestAsyncTask(callerID, apiType).execute(apiUrl);
+            String suggestionId = intent.getStringExtra("suggestionId");
+            new APIRequestAsyncTask(callerID, apiType, suggestionId).execute(apiUrl);
            //  new DLTask().execute(urlPath,fileName);
         }
 
@@ -84,9 +85,12 @@ public class APIRequestService extends Service {
         private OkHttpClient apiClient = new OkHttpClient();
         private String callerID;
         private String apiType;
-        public APIRequestAsyncTask(String callerID, String apiType) {
+        private String suggestionId;
+        public APIRequestAsyncTask(String callerID, String apiType, String suggestionId) {
             this.callerID = callerID;
             this.apiType = apiType;
+            this.suggestionId = suggestionId;
+
             Log.v("APIASYNC", "CONSTRUCT!");
         }
         @Override
@@ -130,6 +134,7 @@ public class APIRequestService extends Service {
             intent.putExtra("jsonObject", response.toString());
             intent.putExtra("callerID", callerID); // USED BY RECEIVERS TO MAKE SURE TO GET RIGHT RESPONSES
             intent.putExtra("apiType", apiType);
+            intent.putExtra("suggestionId", suggestionId);
             sendBroadcast(intent);
         }
     }

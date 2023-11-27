@@ -11,7 +11,9 @@ data class Suggestion(
     var _address: Address,
     val longitude: Double,
     val latitude: Double,
-    val description: String
+    val description: String,
+    val locationId: String,
+    val taApiResponse: String
 )
 
 

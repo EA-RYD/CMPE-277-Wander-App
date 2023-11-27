@@ -528,33 +528,12 @@
         android:layout_width="0dp"
         android:layout_height="48dp"
         android:layout_marginStart="18dp"
+        android:layout_marginEnd="24dp"
         android:hint="Outdoor, Food, etc."
         app:layout_constraintBottom_toBottomOf="@+id/tvPreferences"
-        app:layout_constraintEnd_toStartOf="@+id/imageView3"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/tvPreferences"
         app:layout_constraintTop_toTopOf="@+id/tvPreferences" />
-
-    <ImageView
-        android:id="@+id/imageView3"
-        android:layout_width="51dp"
-        android:layout_height="57dp"
-        android:layout_marginEnd="32dp"
-        app:layout_constraintBottom_toTopOf="@+id/btnSendRequest"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/etPreference"
-        app:layout_constraintTop_toBottomOf="@+id/btnCurrentLocation"
-        app:srcCompat="@drawable/voice" />
-
-    <TextView
-        android:id="@+id/textView4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Voice Input"
-        app:layout_constraintEnd_toEndOf="@+id/imageView3"
-        app:layout_constraintStart_toStartOf="@+id/imageView3"
-        app:layout_constraintTop_toBottomOf="@+id/imageView3" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

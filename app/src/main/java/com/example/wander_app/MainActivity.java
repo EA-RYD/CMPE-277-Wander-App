@@ -2,12 +2,16 @@ package com.example.wander_app;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import com.bumptech.glide.Glide;
 
 import android.app.DatePickerDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -17,14 +21,19 @@ import android.os.Bundle;
 import android.Manifest;
 import android.view.View;
 import android.widget.DatePicker;
+import android.widget.ImageView;
 
 import com.example.wander_app.databinding.ActivityMainBinding;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -37,11 +46,12 @@ public class MainActivity extends AppCompatActivity {
     private MainViewModel viewModel;
 
     private String tripAdvisorKey = "DA033993B5A145549DCEF7D9486BBE21";
-    private final String testCoords = "35.71007° N, 139.81065° W";
-    private String idLocation;
-    private String nameLocation = "test";
-    private String addressLocation = "test";
 
+    private final String ID = "main";
+    private String nameLocation = "";
+    private String addressLocation = "";
+
+    private ImageView[] imageViews;
     private final String TRIP_ADVISOR_LOCATION_ENDPOINT = "https://api.content.tripadvisor.com/api/v1/location";
 
 
@@ -53,6 +63,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         viewModel = new ViewModelProvider(this).get(MainViewModel.class);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        registerReceiver(apiReceiver, new IntentFilter(
+                APIRequestService.Broadcast_id));
+
+        imageViews = new ImageView[]{
+                (binding.ivList01),
+                (binding.ivList02),
+                (binding.ivList03),
+                (binding.ivList04),
+                (binding.ivList05),
+                (binding.ivList06)
+        };
+
 
         binding.btnSendRequest.setOnClickListener(v -> {
             viewModel.updateMessage(binding.etLocation.getText().toString());
@@ -89,8 +111,46 @@ public class MainActivity extends AppCompatActivity {
             binding.tvList06Name.setText(suggestionList.getSuggestions().get(5).getName());
             binding.svSuggestions.setVisibility(View.VISIBLE);
 
+//            reset image and search results
+            viewModel.getTaSearchResult().getValue().getSearchItems().clear();
+            for (ImageView imageView : imageViews) {
+                imageView.setImageResource(R.drawable.default_picture);
+            }
+            //make search request for each suggestion
+            for (int i = 0; i < suggestionList.getSuggestions().size(); i++) {
+                try {
+                    String streetAddress = suggestionList.getSuggestions().get(i).get_address().getStreet();
+                    String latitude = String.valueOf(suggestionList.getSuggestions().get(i).getLatitude());
+                    String longitude = String.valueOf(suggestionList.getSuggestions().get(i).getLongitude());
+                    makeSearchRequest(longitude, latitude, streetAddress, String.valueOf(i));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+            }
+
 
         });
+
+    viewModel.getTaSearchResult().observe(this, taSearchResult -> {
+        Log.i(">>MainActivity", "TA Search Result updated");
+        for (TASearchItem item : taSearchResult.getSearchItems()) {
+            Log.i(">>MainActivity", "TA Search Item: " + item.toString());
+        }
+        if (taSearchResult.getSearchItems().size() == 6) {
+            for (int i = 0; i < taSearchResult.getSearchItems().size(); i++) {
+                TASearchItem item = taSearchResult.getSearchItems().get(i);
+                String locationId = item.getLocationId();
+                String taPicEndpoint = createTaEndpoint("photos", locationId);
+                Intent intentTA = new Intent(getBaseContext(), APIRequestService.class);
+                intentTA.putExtra("callerID", ID);
+                intentTA.putExtra("apiUrl", taPicEndpoint);
+                intentTA.putExtra("apiType", "photos");
+                intentTA.putExtra("suggestionId", item.getSuggestionId());
+                startService(intentTA);
+            }
+        }
+    });
+
 
         viewModel.getLocation().observe(this, location -> {
             Log.i("MainActivity", "onCreate: " + location);
@@ -166,22 +226,98 @@ public class MainActivity extends AppCompatActivity {
         startActivity(detailsIntent);
     }
 
-//    private void makeSearchRequest() throws UnsupportedEncodingException {
-//        // Uses Chatgpt coordinates to find location with lowest distance from target
-//        // TODO replace testcoords
-//        Intent intentTA = new Intent(getBaseContext(), APIRequestService.class);
-//
-//        // Making endpoint for search from coordinates
-//        String encodedAddress = "";
-//        String searchEP = TRIP_ADVISOR_LOCATION_ENDPOINT + "/" + "nearby_search?latLong=" + coordEncoder(testCoords) + "&key="
-//                + tripAdvisorKey + "&address=" + encodedAddress + "&language=en";
-//
-//        intentTA.putExtra("callerID", ID);
-//        intentTA.putExtra("apiUrl", searchEP);
-//        intentTA.putExtra("apiType", "TripAdvisor_Search");
-//
-//        // Make request
-//        startService(intentTA);
-//    }
+    private void makeSearchRequest(String longitude, String latitude, String street, String suggestionId) throws UnsupportedEncodingException {
+        // Uses ChatGpt coordinates and street address to find location with lowest distance from target
+        Intent intentTA = new Intent(getBaseContext(), APIRequestService.class);
 
+        // Making endpoint for search from coordinates
+        String encodedAddress = encodeAddress(street);
+        String searchEP = TRIP_ADVISOR_LOCATION_ENDPOINT + "/" + "nearby_search?latLong=" + coordEncoder(latitude + ", " + longitude) + "&key="
+                + tripAdvisorKey + "&address=" + encodedAddress + "&language=en";
+        Log.i(">>MainActivity", "makeSearchRequest: " + searchEP);
+        intentTA.putExtra("callerID", ID);
+        intentTA.putExtra("apiUrl", searchEP);
+        intentTA.putExtra("apiType", "TripAdvisor_Search");
+        intentTA.putExtra("suggestionId", suggestionId.toString());
+
+//         Make request
+        startService(intentTA);
+    }
+
+
+
+    private BroadcastReceiver apiReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            JSONObject response = null;
+            Log.v(">>Receiver", "TA Message Received!");
+            try {
+                response = new JSONObject(intent.getStringExtra("jsonObject"));
+                String suggestionId  = intent.getStringExtra("suggestionId");
+                String apiType = intent.getStringExtra("apiType");
+                Log.i(">>Receiver", "Suggestion ID: " + suggestionId);
+                Log.v(">>Receiver", "Response: " + response.toString());
+                if (apiType.equals("TripAdvisor_Search")) {
+                    TASearchItem taSearchItem = new TASearchItem(suggestionId, "");
+                    viewModel.addSearchItem(taSearchItem);
+                    if (response.has("data")) {
+                        JSONArray dataArray = response.getJSONArray("data");
+                        JSONObject data = dataArray.getJSONObject(0);
+                        Log.i(">>Receiver", "Search Data: " + data.toString());
+                        if (data.has("location_id")) {
+                            String locationId = data.getString("location_id");
+                            taSearchItem.setLocationID(locationId);
+                        }
+                    }
+                }
+                if (apiType.equals("photos")) {
+                    if (response.has("data")) {
+                        JSONArray dataArray = response.getJSONArray("data");
+                        JSONObject data = dataArray.getJSONObject(0);
+                        Log.i(">>Receiver", "Image Data: " + data.toString());
+                        if (data.has("images")) {
+                            JSONObject images = data.getJSONObject("images");
+                            if (images.has("medium")) {
+                                JSONObject mediumImage = images.getJSONObject("medium");
+                                String imageUrl = mediumImage.getString("url");
+                                Log.i(">>Receiver", "Image URL: " + imageUrl);
+                                Glide.with(getBaseContext()).load(imageUrl).into(imageViews[Integer.parseInt(suggestionId)]);
+                            }
+                        }
+                    }
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    };
+    private String coordEncoder(String coords) {
+        String cleanedCoordinates = coords.replaceAll("[^0-9,.\\-]", "").replaceAll("\\s", "");
+
+        // Remove trailing commas
+        cleanedCoordinates = cleanedCoordinates.replaceAll(",$", "");
+
+        try {
+            String encodedCoordinates = URLEncoder.encode(cleanedCoordinates, "UTF-8");
+            System.out.println("Encoded Coordinates: " + encodedCoordinates);
+            return encodedCoordinates;
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    public static String encodeAddress(String address) {
+        try {
+            // Encode the address using UTF-8 encoding
+            return URLEncoder.encode(address, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    private String createTaEndpoint(String endpointType, String locationId) {
+        return TRIP_ADVISOR_LOCATION_ENDPOINT + "/" + locationId + "/" + endpointType + "?key=" + tripAdvisorKey + "&language=en";
+    }
 }
