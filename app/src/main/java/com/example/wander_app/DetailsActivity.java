@@ -35,13 +35,12 @@ import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
 
 public class DetailsActivity extends AppCompatActivity {
-    private Coordinates locationCoords;
-    // Unique identifier
+    private String locationCoords;
     private final String ID = "details";
 
-    // TODO DONT HARDCODE KEY, GET COORDS FROM MAINACTIVITY
+    // TODO DONT HARDCODE KEY
     private String tripAdvisorKey = "DA033993B5A145549DCEF7D9486BBE21";
-    private final String testCoords = "35.71007° N, 139.81065° W";
+    // private final String testCoords = "35.71007° N, 139.81065° W";
     private String idLocation;
     private String nameLocation = "test";
     private String addressLocation = "test";
@@ -57,6 +56,7 @@ public class DetailsActivity extends AppCompatActivity {
     private JSONArray hours;
     private ArrayList<DailyWeatherItem> predictedWeather = new ArrayList<>();
     private ArrayList<UserReview> recentReviews = new ArrayList<>();
+    private String picJsonResponse;
     public static final int MAX_REVIEWS = 5;
 
 
@@ -71,77 +71,52 @@ public class DetailsActivity extends AppCompatActivity {
         registerReceiver(apiReceiver, new IntentFilter(
                 APIRequestService.Broadcast_id));
 
+        // TODO GET PIC RESPONSE, ID
         Intent pastIntent = getIntent(); // gets intent that started this activity
-        pastIntent.getStringExtra("latitude"); // Should be in format of {37.3983° N}
-        pastIntent.getStringExtra("longitude");
+//        pastIntent.getStringExtra("latitude"); // Should be in format of {37.3983° N}
+//        pastIntent.getStringExtra("longitude");
+        idLocation = pastIntent.getStringExtra("id");
+        picJsonResponse = pastIntent.getStringExtra("resp");
 
 
         try {
-            makeSearchRequest();
-        } catch (UnsupportedEncodingException e) {
+            extractPicResponse();
+        } catch (JSONException e) {
             throw new RuntimeException(e);
         }
+
+        createTaApiRequests();
     }
 
-    private void makeSearchRequest() throws UnsupportedEncodingException {
-        // Uses Chatgpt coordinates to find location with lowest distance from target
-        // TODO replace testcoords
-        Intent intentTA = new Intent(getBaseContext(), APIRequestService.class);
-
-        // Making endpoint for search from coordinates
-        String encodedAddress = "";
-        String searchEP = TRIP_ADVISOR_LOCATION_ENDPOINT + "/" + "nearby_search?latLong=" + coordEncoder(testCoords) + "&key="
-                + tripAdvisorKey + "&address=" + encodedAddress + "&language=en";
-
-        intentTA.putExtra("callerID", ID);
-        intentTA.putExtra("apiUrl", searchEP);
-        intentTA.putExtra("apiType", "TripAdvisor_Search");
-
-        // Make request
-        startService(intentTA);
-    }
-
-    private String addressEncoder(String address) {
-        return "";
-    }
-
-    private String coordEncoder(String coords) {
-        String cleanedCoordinates = coords.replaceAll("[^0-9,.\\-]", "").replaceAll("\\s", "");
-
-        // Remove trailing commas
-        cleanedCoordinates = cleanedCoordinates.replaceAll(",$", "");
-
-        try {
-            String encodedCoordinates = URLEncoder.encode(cleanedCoordinates, "UTF-8");
-            System.out.println("Encoded Coordinates: " + encodedCoordinates);
-            return encodedCoordinates;
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return "";
-    }
-
-    private void createApiRequests() {
-        // TODO Replace testcoords
-        String taPicEndpoint = createTaEndpoint("photos");
+    private void createTaApiRequests() {
+        // String taPicEndpoint = createTaEndpoint("photos");
         String taDetEndpoint = createTaEndpoint("details");
         String taRevEndpoint = createTaEndpoint("reviews");
 
-        String[] parts = testCoords.split(", ");
-        String latStr = parts[0];
-        String lonStr = parts[1];
+        ArrayList<String> endpoints = new ArrayList<>(Arrays.asList(taDetEndpoint, taRevEndpoint));
+        executeApiRequests(endpoints);
+    }
 
-        String latitude = latStr.substring(0, latStr.length() - 3);
-        String longitude = lonStr.substring(0, lonStr.length() - 3);
+    private void createAndExeWeatherAPI() {
+        String[] parts = locationCoords.split(", ");
+        String latitude = parts[0];
+        String longitude = parts[1];
+        Log.v("createAndExeWeatherAPI", latitude + "," + longitude);
 
         String weatherApi = "https://api.open-meteo.com/v1/forecast?latitude=" + latitude
-            + "&longitude=" + longitude + "&current=temperature_2m,rain,showers&daily=weather_code,temperature_2m_max," +
+                + "&longitude=" + longitude + "&current=temperature_2m,rain,showers&daily=weather_code,temperature_2m_max," +
                 "temperature_2m_min,apparent_temperature_max,apparent_temperature_min,daylight_duration,precipitation_sum," +
                 "precipitation_probability_max,wind_speed_10m_max&temperature_unit=fahrenheit&wind_speed_unit=" +
                 "mph&precipitation_unit=inch";
+
         Log.v("GenApi", weatherApi);
-        ArrayList<String> endpoints = new ArrayList<>(Arrays.asList(taPicEndpoint, taDetEndpoint, taRevEndpoint, weatherApi));
-        executeApiRequests(endpoints);
+
+        // Weather API
+        Intent intentTA4 = new Intent(getBaseContext(), APIRequestService.class);
+        intentTA4.putExtra("callerID", ID);
+        intentTA4.putExtra("apiUrl", weatherApi);
+        intentTA4.putExtra("apiType", "Weather");
+        startService(intentTA4);
     }
 
     private String createTaEndpoint(String endpointType) {
@@ -149,13 +124,6 @@ public class DetailsActivity extends AppCompatActivity {
     }
 
     private void executeApiRequests(ArrayList<String> urls) {
-        // TripAdvisor API Request Service (Pictures)
-        Intent intentTA = new Intent(getBaseContext(), APIRequestService.class);
-        intentTA.putExtra("callerID", ID);
-        intentTA.putExtra("apiUrl", urls.get(0));
-        intentTA.putExtra("apiType", "TripAdvisor_Pic");
-        startService(intentTA);
-
         // TripAdvisor API Request Service (Description)
         Intent intentTA2 = new Intent(getBaseContext(), APIRequestService.class);
         intentTA2.putExtra("callerID", ID);
@@ -169,13 +137,25 @@ public class DetailsActivity extends AppCompatActivity {
         intentTA3.putExtra("apiUrl", urls.get(2));
         intentTA3.putExtra("apiType", "TripAdvisor_Reviews");
         startService(intentTA3);
+    }
 
-        // Weather API
-        Intent intentTA4 = new Intent(getBaseContext(), APIRequestService.class);
-        intentTA4.putExtra("callerID", ID);
-        intentTA4.putExtra("apiUrl", urls.get(3));
-        intentTA4.putExtra("apiType", "Weather");
-        startService(intentTA4);
+    private void extractPicResponse() throws JSONException {
+        JSONObject response = new JSONObject(picJsonResponse);
+
+        Log.v("Receiver", "TripAdvisor_Pic!");
+        JSONArray data = response.getJSONArray("data");
+        for (int i = 0; i < Math.min(MyPagerAdapter.MAX_SIZE, data.length()); i++) {
+            JSONObject photo = data.getJSONObject(i);
+            JSONObject images = photo.getJSONObject("images");
+            JSONObject mediumImage = images.getJSONObject("large");
+            String imageUrl = mediumImage.getString("url");
+            String caption = photo.getString("caption");
+            if (caption.isEmpty()) {
+                caption = "No caption available";
+            }
+            pictureGallery.add(new VacationPicture("Caption: " + caption, imageUrl));
+        }
+        createGallery();
     }
 
     private void createGallery() {
@@ -233,22 +213,6 @@ public class DetailsActivity extends AppCompatActivity {
                     Log.v("Receiver", "ID MATCHES!");
                     response = new JSONObject(intent.getStringExtra("jsonObject"));
                     switch (intent.getStringExtra("apiType")) {
-                        case "TripAdvisor_Pic":
-                            Log.v("Receiver", "TripAdvisor_Pic!");
-                            JSONArray data = response.getJSONArray("data");
-                            for (int i = 0; i < Math.min(MyPagerAdapter.MAX_SIZE, data.length()); i++) {
-                                JSONObject photo = data.getJSONObject(i);
-                                JSONObject images = photo.getJSONObject("images");
-                                JSONObject mediumImage = images.getJSONObject("large");
-                                String imageUrl = mediumImage.getString("url");
-                                String caption = photo.getString("caption");
-                                if (caption.isEmpty()) {
-                                    caption = "No caption available";
-                                }
-                                pictureGallery.add(new VacationPicture("Caption: " + caption, imageUrl));
-                            }
-                            createGallery();
-                            break;
                         case "TripAdvisor_Desc":
                             Log.v("Receiver", "TripAdvisor_Desc!");
                             JSONObject time = response.getJSONObject("hours");
@@ -257,7 +221,10 @@ public class DetailsActivity extends AppCompatActivity {
                             totalRating.setRating((float) response.getDouble("rating"));
                             TextView galleryTitle = findViewById(R.id.galleryText);
                             galleryTitle.setText("Details: " + response.getString("name"));
+                            locationCoords = response.getString("latitude") + "," + response.getString("longitude");
+
                             createHoursSchedule();
+                            createAndExeWeatherAPI();
                             break;
                         case "TripAdvisor_Reviews":
                             Log.v("Receiver", "TripAdvisor_Reviews!");
@@ -279,39 +246,7 @@ public class DetailsActivity extends AppCompatActivity {
 
                             createReviewsCard();
                             break;
-                        case "TripAdvisor_Search":
-                            try {
-                                JSONArray dataArr = response.getJSONArray("data");
 
-                                double minDistance = Double.MAX_VALUE;
-                                String closestLocationId = null;
-
-                                for (int i = 0; i < dataArr.length(); i++) {
-                                    JSONObject location = dataArr.getJSONObject(i);
-                                    String locationId = location.getString("location_id");
-                                    String distanceStr = location.getString("distance");
-
-                                    double distance = Double.parseDouble(distanceStr);
-
-                                    String locationName = location.getString("name");
-                                    if (locationName.equalsIgnoreCase(nameLocation) || (distance < minDistance)) {
-                                        minDistance = distance;
-                                        closestLocationId = locationId;
-                                    }
-                                }
-
-                                if (closestLocationId != null) {
-                                    Log.d("LocationProcessor", "Closest Location ID: " + closestLocationId);
-                                    idLocation = closestLocationId;
-                                } else {
-                                    Log.d("LocationProcessor", "No matching or closest location found.");
-                                }
-
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                            createApiRequests();
-                            break;
                         case "Weather":
                             Log.v("Receiver", "Weather!");
                             try {;
