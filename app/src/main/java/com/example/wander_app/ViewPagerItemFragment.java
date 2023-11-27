@@ -52,10 +52,11 @@ public class ViewPagerItemFragment extends Fragment {
     }
 
     private void init() {
-        if (pic != null) {
-            RequestOptions options = new RequestOptions().placeholder(R.drawable.ic_launcher_background);
+        RequestOptions options = new RequestOptions().placeholder(R.drawable.ic_launcher_background);
+        if (pic != null)
             Glide.with(getActivity()).setDefaultRequestOptions(options).load(pic.getImage()).into(imageView);
-            caption.setText(pic.getTitle());
-        }
+        else
+            imageView.setImageResource(R.drawable.default_picture);
+        caption.setText(pic.getTitle());
     }
 }

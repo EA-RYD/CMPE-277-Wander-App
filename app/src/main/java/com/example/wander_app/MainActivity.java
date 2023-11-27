@@ -272,8 +272,8 @@ public class MainActivity extends AppCompatActivity {
                 Intent detailsIntent = new Intent(MainActivity.this, DetailsActivity.class);
                 Log.i(">>MainActivity", "onButtonClick: location_id " + viewModel.getTaPhotoResult().getValue().get(id - 1).getLocationId());
                 Log.i(">>MainActivity", "onButtonClick: response_string " + viewModel.getTaPhotoResult().getValue().get(id - 1).getResponseString());
-                detailsIntent.putExtra("locationId", viewModel.getTaPhotoResult().getValue().get(id - 1).getLocationId());
-                detailsIntent.putExtra("responseString", viewModel.getTaPhotoResult().getValue().get(id - 1).getResponseString());
+                detailsIntent.putExtra("locationId", viewModel.getTaPhotoResult().getValue().get(id - 2).getLocationId());
+                detailsIntent.putExtra("responseString", viewModel.getTaPhotoResult().getValue().get(id - 2).getResponseString());
                 startActivity(detailsIntent);
 
 
@@ -312,83 +312,85 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             JSONObject response = null;
             Log.v(">>Receiver", "TA Message Received!");
-            try {
-                response = new JSONObject(intent.getStringExtra("jsonObject"));
-                String suggestionId  = intent.getStringExtra("suggestionId");
-                String apiType = intent.getStringExtra("apiType");
-                Log.i(">>Receiver", "Suggestion ID: " + suggestionId);
-                if (apiType.equals("TripAdvisor_Search")) {
-                    Log.i(">>Receiver", "Search Response: " + response);
-                    TASearchItem taSearchItem = new TASearchItem(suggestionId, "0000");
-                    if (response.has("data")) {
-                        JSONArray dataArray = response.getJSONArray("data");
-                            if (dataArray.length() > 0) {
-                                JSONObject data = null;
-                                // New logic to find the matching name
-                                String textViewText = textViews[Integer.parseInt(suggestionId)].getText().toString();
-                                for (int i = 0; i < dataArray.length(); i++) {
-                                    JSONObject tempObj = dataArray.getJSONObject(i);
-                                    String name = tempObj.getString("name");
-                                    if (tempObj.has("name") && (name.equals(textViewText) || name.contains(textViewText) || textViewText.contains(name))) {
-                                        Log.i(">>Receiver", "Found matching name: " + tempObj.getString("name"));
-                                        data = tempObj;
-                                        break;
-                                    }
-                                }
-
-                                // Default to first item if no match is found
-                                if (data == null) {
-                                    data = dataArray.getJSONObject(0);
-                                }
-
-                                Log.i(">>Receiver", "Search Data: " + data.toString());
-                                if (data.has("location_id")) {
-                                    String locationId = data.getString("location_id");
-                                    //update location id in the taPhotoResult
-                                    viewModel.updatePhotoItemLocationId(Integer.parseInt(suggestionId), locationId);
-                                    for (TAPhotoItem item : viewModel.getTaPhotoResult().getValue()){
-                                        Log.d(">>PhotoItemLog", item.toString());
+            if (intent != null && intent.getStringExtra("callerID").equals(ID)) {
+                try {
+                    response = new JSONObject(intent.getStringExtra("jsonObject"));
+                    String suggestionId  = intent.getStringExtra("suggestionId");
+                    String apiType = intent.getStringExtra("apiType");
+                    Log.i(">>Receiver", "Suggestion ID: " + suggestionId);
+                    if (apiType.equals("TripAdvisor_Search")) {
+                        Log.i(">>Receiver", "Search Response: " + response);
+                        TASearchItem taSearchItem = new TASearchItem(suggestionId, "0000");
+                        if (response.has("data")) {
+                            JSONArray dataArray = response.getJSONArray("data");
+                                if (dataArray.length() > 0) {
+                                    JSONObject data = null;
+                                    // New logic to find the matching name
+                                    String textViewText = textViews[Integer.parseInt(suggestionId)].getText().toString();
+                                    for (int i = 0; i < dataArray.length(); i++) {
+                                        JSONObject tempObj = dataArray.getJSONObject(i);
+                                        String name = tempObj.getString("name");
+                                        if (tempObj.has("name") && (name.equals(textViewText) || name.contains(textViewText) || textViewText.contains(name))) {
+                                            Log.i(">>Receiver", "Found matching name: " + tempObj.getString("name"));
+                                            data = tempObj;
+                                            break;
+                                        }
                                     }
 
-                                    taSearchItem.setLocationID(locationId);
-                                    viewModel.addSearchItem(taSearchItem);
+                                    // Default to first item if no match is found
+                                    if (data == null) {
+                                        data = dataArray.getJSONObject(0);
+                                    }
+
+                                    Log.i(">>Receiver", "Search Data: " + data.toString());
+                                    if (data.has("location_id")) {
+                                        String locationId = data.getString("location_id");
+                                        //update location id in the taPhotoResult
+                                        viewModel.updatePhotoItemLocationId(Integer.parseInt(suggestionId), locationId);
+                                        for (TAPhotoItem item : viewModel.getTaPhotoResult().getValue()){
+                                            Log.d(">>PhotoItemLog", item.toString());
+                                        }
+
+                                        taSearchItem.setLocationID(locationId);
+                                        viewModel.addSearchItem(taSearchItem);
+                                    } else {
+                                        viewModel.addSearchItem(taSearchItem);
+                                    }
                                 } else {
+                                    taSearchItem.setLocationID("");
                                     viewModel.addSearchItem(taSearchItem);
                                 }
-                            } else {
-                                taSearchItem.setLocationID("");
-                                viewModel.addSearchItem(taSearchItem);
-                            }
-                    }
+                        }
 
-                    Log.i(">>Receiver", "taSearchResult " + viewModel.getTaSearchResult().getValue().toString());
-                }
-                if (apiType.equals("photos")) {
-//                    taPhotoItems[Integer.parseInt(suggestionId)].setResponseString(response.toString());
-                    Log.i(">>Receiver", "Photo Response: " + response);
-                    //update photo item response string
-                    viewModel.updatePhotoItemResponseString(Integer.parseInt(suggestionId), response.toString());
-                    for (TAPhotoItem item : viewModel.getTaPhotoResult().getValue()){
-                        Log.d(">>PhotoItemLog", item.toString());
+                        Log.i(">>Receiver", "taSearchResult " + viewModel.getTaSearchResult().getValue().toString());
                     }
-                    if (response.has("data")) {
-                        JSONArray dataArray = response.getJSONArray("data");
-                        JSONObject data = dataArray.getJSONObject(0);
+                    if (apiType.equals("photos")) {
+    //                    taPhotoItems[Integer.parseInt(suggestionId)].setResponseString(response.toString());
+                        Log.i(">>Receiver", "Photo Response: " + response);
+                        //update photo item response string
+                        viewModel.updatePhotoItemResponseString(Integer.parseInt(suggestionId), response.toString());
+                        for (TAPhotoItem item : viewModel.getTaPhotoResult().getValue()){
+                            Log.d(">>PhotoItemLog", item.toString());
+                        }
+                        if (response.has("data")) {
+                            JSONArray dataArray = response.getJSONArray("data");
+                            JSONObject data = dataArray.getJSONObject(0);
 
-                        if (data.has("images")) {
-                            JSONObject images = data.getJSONObject("images");
-                            if (images.has("medium")) {
-                                JSONObject mediumImage = images.getJSONObject("medium");
-                                String imageUrl = mediumImage.getString("url");
-                                Log.i(">>Receiver", "Image URL: " + imageUrl);
-                                Glide.with(getBaseContext()).load(imageUrl).into(imageViews[Integer.parseInt(suggestionId)]);
+                            if (data.has("images")) {
+                                JSONObject images = data.getJSONObject("images");
+                                if (images.has("medium")) {
+                                    JSONObject mediumImage = images.getJSONObject("medium");
+                                    String imageUrl = mediumImage.getString("url");
+                                    Log.i(">>Receiver", "Image URL: " + imageUrl);
+                                    Glide.with(getBaseContext()).load(imageUrl).into(imageViews[Integer.parseInt(suggestionId)]);
+                                }
                             }
                         }
                     }
-                }
 
-            } catch (Exception e) {
-                e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
     };

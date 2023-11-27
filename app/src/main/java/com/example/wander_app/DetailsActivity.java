@@ -75,9 +75,11 @@ public class DetailsActivity extends AppCompatActivity {
         Intent pastIntent = getIntent(); // gets intent that started this activity
 //        pastIntent.getStringExtra("latitude"); // Should be in format of {37.3983° N}
 //        pastIntent.getStringExtra("longitude");
-        idLocation = pastIntent.getStringExtra("id");
-        picJsonResponse = pastIntent.getStringExtra("resp");
-
+        idLocation = pastIntent.getStringExtra("locationId");
+        picJsonResponse = pastIntent.getStringExtra("responseString");
+        if (idLocation.isEmpty() && picJsonResponse.isEmpty()) {
+            finish();
+        }
 
         try {
             extractPicResponse();
@@ -98,7 +100,7 @@ public class DetailsActivity extends AppCompatActivity {
     }
 
     private void createAndExeWeatherAPI() {
-        String[] parts = locationCoords.split(", ");
+        String[] parts = locationCoords.split(",");
         String latitude = parts[0];
         String longitude = parts[1];
         Log.v("createAndExeWeatherAPI", latitude + "," + longitude);
@@ -127,35 +129,39 @@ public class DetailsActivity extends AppCompatActivity {
         // TripAdvisor API Request Service (Description)
         Intent intentTA2 = new Intent(getBaseContext(), APIRequestService.class);
         intentTA2.putExtra("callerID", ID);
-        intentTA2.putExtra("apiUrl", urls.get(1));
+        intentTA2.putExtra("apiUrl", urls.get(0));
         intentTA2.putExtra("apiType", "TripAdvisor_Desc");
         startService(intentTA2);
 
         // TripAdvisor API Request Service (Reviews)
         Intent intentTA3 = new Intent(getBaseContext(), APIRequestService.class);
         intentTA3.putExtra("callerID", ID);
-        intentTA3.putExtra("apiUrl", urls.get(2));
+        intentTA3.putExtra("apiUrl", urls.get(1));
         intentTA3.putExtra("apiType", "TripAdvisor_Reviews");
         startService(intentTA3);
     }
 
     private void extractPicResponse() throws JSONException {
-        JSONObject response = new JSONObject(picJsonResponse);
+        if (!picJsonResponse.isEmpty() || (new JSONObject(picJsonResponse)).getJSONArray("data").length() == 0) {
+            JSONObject response = new JSONObject(picJsonResponse);
 
-        Log.v("Receiver", "TripAdvisor_Pic!");
-        JSONArray data = response.getJSONArray("data");
-        for (int i = 0; i < Math.min(MyPagerAdapter.MAX_SIZE, data.length()); i++) {
-            JSONObject photo = data.getJSONObject(i);
-            JSONObject images = photo.getJSONObject("images");
-            JSONObject mediumImage = images.getJSONObject("large");
-            String imageUrl = mediumImage.getString("url");
-            String caption = photo.getString("caption");
-            if (caption.isEmpty()) {
-                caption = "No caption available";
+            Log.v("Receiver", "TripAdvisor_Pic!");
+            JSONArray data = response.getJSONArray("data");
+            for (int i = 0; i < Math.min(MyPagerAdapter.MAX_SIZE, data.length()); i++) {
+                JSONObject photo = data.getJSONObject(i);
+                JSONObject images = photo.getJSONObject("images");
+                JSONObject mediumImage = images.getJSONObject("large");
+                String imageUrl = mediumImage.getString("url");
+                String caption = photo.getString("caption");
+                if (caption.isEmpty()) {
+                    caption = "No caption available";
+                }
+                pictureGallery.add(new VacationPicture("Caption: " + caption, imageUrl));
             }
-            pictureGallery.add(new VacationPicture("Caption: " + caption, imageUrl));
+            createGallery();
+        } else {
+            pictureGallery.add(new VacationPicture("Caption: " + "No Data Available!"));
         }
-        createGallery();
     }
 
     private void createGallery() {
@@ -215,10 +221,30 @@ public class DetailsActivity extends AppCompatActivity {
                     switch (intent.getStringExtra("apiType")) {
                         case "TripAdvisor_Desc":
                             Log.v("Receiver", "TripAdvisor_Desc!");
-                            JSONObject time = response.getJSONObject("hours");
-                            hours = time.getJSONArray("weekday_text");
+                            if (response.isNull("hours")) {
+                                String[] modifiedHours = {
+                                        "Monday: Data Not Available",
+                                        "Tuesday: Data Not Available",
+                                        "Wednesday: Data Not Available",
+                                        "Thursday: Data Not Available",
+                                        "Friday: Data Not Available",
+                                        "Saturday: Data Not Available",
+                                        "Sunday: Data Not Available"
+                                };
+
+                                hours = new JSONArray(modifiedHours);
+                            } else {
+                                JSONObject time = response.getJSONObject("hours");
+                                hours = time.getJSONArray("weekday_text");
+                            }
+
                             RatingBar totalRating = findViewById(R.id.totalRating);
-                            totalRating.setRating((float) response.getDouble("rating"));
+
+                            if (response.isNull("rating"))
+                                totalRating.setRating(0);
+                            else
+                                totalRating.setRating((float) response.getDouble("rating"));
+
                             TextView galleryTitle = findViewById(R.id.galleryText);
                             galleryTitle.setText("Details: " + response.getString("name"));
                             locationCoords = response.getString("latitude") + "," + response.getString("longitude");
@@ -252,7 +278,7 @@ public class DetailsActivity extends AppCompatActivity {
                             try {;
                                 JSONArray dailyArray = response.getJSONObject("daily").getJSONArray("time");
 
-                                for (int i = 0; i < dailyArray.length(); i++) {
+                                for (int i = 0; i < Math.min(dailyArray.length(), 7); i++) {
                                     String day = dailyArray.getString(i);
                                     String degreesMax = response.getJSONObject("daily").getJSONArray("temperature_2m_max").getString(i);
                                     String precipitation = response.getJSONObject("daily").getJSONArray("precipitation_sum").getString(i);
