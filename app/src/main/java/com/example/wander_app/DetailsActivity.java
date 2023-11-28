@@ -78,6 +78,7 @@ public class DetailsActivity extends AppCompatActivity {
         idLocation = pastIntent.getStringExtra("locationId");
         picJsonResponse = pastIntent.getStringExtra("responseString");
         if (idLocation.isEmpty() && picJsonResponse.isEmpty()) {
+            Log.v("EmptyStuff", "BOTH ID AND PIC EMPTY!");
             finish();
         }
 
@@ -142,7 +143,9 @@ public class DetailsActivity extends AppCompatActivity {
     }
 
     private void extractPicResponse() throws JSONException {
-        if (!picJsonResponse.isEmpty() || (new JSONObject(picJsonResponse)).getJSONArray("data").length() == 0) {
+        Log.v("ExtractPic", picJsonResponse);
+        Log.v("ExtractPic", String.valueOf(picJsonResponse.isEmpty()));
+        if (!picJsonResponse.isEmpty() && (new JSONObject(picJsonResponse)).getJSONArray("data").length() != 0) {
             JSONObject response = new JSONObject(picJsonResponse);
 
             Log.v("Receiver", "TripAdvisor_Pic!");
@@ -161,11 +164,13 @@ public class DetailsActivity extends AppCompatActivity {
             createGallery();
         } else {
             pictureGallery.add(new VacationPicture("Caption: " + "No Data Available!"));
+            createGallery();
         }
     }
 
     private void createGallery() {
         Log.v("DETAILS", "GALLERY CREATE!");
+        Log.v("DETAILS", String.valueOf(pictureGallery.size()));
         ArrayList<Fragment> fragments = new ArrayList<>();
         for (VacationPicture vacP : pictureGallery) {
             ViewPagerItemFragment frag = ViewPagerItemFragment.getInstance(vacP);
@@ -190,10 +195,10 @@ public class DetailsActivity extends AppCompatActivity {
     }
 
     private void createReviewsCard() {
+        CardView cv = findViewById(R.id.cardView2);
         ReviewListAdapter listAdapter = new ReviewListAdapter(this, recentReviews);
         ListView listView = findViewById(R.id.reviewList);
         listView.setAdapter(listAdapter);
-        CardView cv = findViewById(R.id.cardView2);
         cv.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
     }
 

@@ -25,7 +25,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.wander_app.databinding.ActivityMainBinding;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -58,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
 
     private ImageView[] imageViews;
     private TextView[] textViews;
+    private ProgressBar loadIndicator;
 
     private final String TRIP_ADVISOR_LOCATION_ENDPOINT = "https://api.content.tripadvisor.com/api/v1/location";
 
@@ -80,6 +83,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         viewModel = new ViewModelProvider(this).get(MainViewModel.class);
+        loadIndicator = findViewById(R.id.loadingBar);
+
 
         imageViews = new ImageView[]{
                 (binding.ivList01),
@@ -117,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         binding.btnSendRequest.setOnClickListener(v -> {
+            loadIndicator.setVisibility(View.VISIBLE);
             viewModel.updateMessage(binding.etLocation.getText().toString());
             String preferenceText = binding.etPreference.getText().toString();
             if (!preferenceText.isEmpty()) {
@@ -321,10 +327,7 @@ public class MainActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-    public void onClickButton(View view) {
-        Intent detailsIntent = new Intent(MainActivity.this, DetailsActivity.class);
-        startActivity(detailsIntent);
-    }
+
 
     private void onButtonClick(View v) {
         String btnId = String.valueOf(v.getId());
@@ -336,12 +339,18 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(">>MainActivity", "Clicked Button ID: " + id);
                 // Open details activity
                 Intent detailsIntent = new Intent(MainActivity.this, DetailsActivity.class);
-                Log.i(">>MainActivity", "onButtonClick: location_id " + viewModel.getTaPhotoResult().getValue().get(id - 1).getLocationId());
-                Log.i(">>MainActivity", "onButtonClick: response_string " + viewModel.getTaPhotoResult().getValue().get(id - 1).getResponseString());
-                detailsIntent.putExtra("locationId", viewModel.getTaPhotoResult().getValue().get(id - 2).getLocationId());
-                detailsIntent.putExtra("responseString", viewModel.getTaPhotoResult().getValue().get(id - 2).getResponseString());
-                startActivity(detailsIntent);
+                String tempId = viewModel.getTaPhotoResult().getValue().get(id - 2).getLocationId();
+                String tempResp = viewModel.getTaPhotoResult().getValue().get(id - 2).getResponseString();
+                Log.i(">>MainActivity", "onButtonClick: location_id " + viewModel.getTaPhotoResult().getValue().get(id - 2).getLocationId());
+                Log.i(">>MainActivity", "onButtonClick: response_string " + viewModel.getTaPhotoResult().getValue().get(id - 2).getResponseString());
 
+                if (!tempId.isEmpty()) {
+                    detailsIntent.putExtra("locationId", viewModel.getTaPhotoResult().getValue().get(id - 2).getLocationId());
+                    detailsIntent.putExtra("responseString", viewModel.getTaPhotoResult().getValue().get(id - 2).getResponseString());
+                    startActivity(detailsIntent);
+                } else {
+                    Toast.makeText(this, "No details available!", Toast.LENGTH_SHORT).show();
+                }
 
             } catch (NumberFormatException e) {
                 Log.i(">>MainActivity", "onButtonClick: " + "Error parsing button ID");
@@ -444,6 +453,7 @@ public class MainActivity extends AppCompatActivity {
                             if (data.has("images")) {
                                 JSONObject images = data.getJSONObject("images");
                                 if (images.has("medium")) {
+                                    loadIndicator.setVisibility(View.INVISIBLE);
                                     JSONObject mediumImage = images.getJSONObject("medium");
                                     String imageUrl = mediumImage.getString("url");
                                     viewModel.updatePhotoItemImgUrl(Integer.parseInt(suggestionId), imageUrl);
@@ -453,7 +463,6 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     }
-
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
