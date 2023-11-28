@@ -499,16 +499,18 @@
         </LinearLayout>
     </ScrollView>
 
-    <Button
-        android:id="@+id/DetailsTest"
-        style="@style/WanderAppTheme.Button.GrayOutline"
+
+    <ProgressBar
+        android:id="@+id/loadingBar"
+        android:visibility="invisible"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="onClickButton"
-        android:text="Button"
-        android:visibility="invisible"
+        android:layout_marginEnd="116dp"
+        android:layout_marginBottom="4dp"
         app:layout_constraintBottom_toTopOf="@id/etLocation"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:indeterminateDrawable="@drawable/load_circle"
+        android:indeterminateDuration="@android:integer/config_longAnimTime"/>
 
     <TextView
         android:id="@+id/tvPreferences"

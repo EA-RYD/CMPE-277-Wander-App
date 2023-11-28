@@ -16,6 +16,7 @@ public class VacationPicture implements Parcelable {
 
     public VacationPicture(String title)  {
         this.title = title;
+        imageUrl = "";
     }
 
     public VacationPicture() {

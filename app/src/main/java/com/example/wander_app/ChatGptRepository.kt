@@ -20,7 +20,7 @@ class ChatGptRepository() {
 
     init {
 
-        apiKey = ""
+        apiKey = "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"
 
         urlEndPoint = "https://api.openai.com/v1/chat/completions"
         val jsonString =
