@@ -123,12 +123,23 @@
         android:id="@+id/btnSendRequest"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="12dp"
         android:text="Send Request"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.501"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvPreferences" />
+
+    <Button
+        android:id="@+id/btnLoadItinerary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="24dp"
+        android:text="Load Saved Itinerary"
+        app:layout_constraintBottom_toBottomOf="@+id/btnSendRequest"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btnSendRequest"
+        app:layout_constraintTop_toTopOf="@+id/btnSendRequest" />
 
     <ScrollView
         android:id="@+id/svSuggestions"

@@ -9,26 +9,31 @@ import com.tutorial.chatgptapp.ChatGptRepository
 import kotlinx.coroutines.launch
 
 
-class MainViewModel : ViewModel() {
+class MainViewModel() : ViewModel() {
+
     val gpt = ChatGptRepository()
     val response = MutableLiveData<String>()
     val message = MutableLiveData<String>()
     val location = MutableLiveData<String>()
     val suggestionList = MutableLiveData<SuggestionList>()
     val taSearchResult = MutableLiveData<TASearchResult>()
+    val loadedSuggestionList = MutableLiveData<MutableList<Suggestion>>()
+
     init {
         // Initialize with an empty TASearchResult
         taSearchResult.value = TASearchResult()
     }
+
     val taPhotoResult = MutableLiveData<MutableList<TAPhotoItem>>()
+
     init {
         // Initialize the MutableLiveData with a MutableList containing 6 TAPhotoItem instances
-        val initialPhotoItems = MutableList(6) { TAPhotoItem() } // Replace TAPhotoItem() with appropriate constructor call if needed
+        val initialPhotoItems =
+            MutableList(6) { TAPhotoItem() } // Replace TAPhotoItem() with appropriate constructor call if needed
         taPhotoResult.value = initialPhotoItems
     }
 
     val itinerary = MutableLiveData<MutableList<ItineraryItem>>()
-
 
 
     fun addSearchItem(taSearchItem: TASearchItem) {
@@ -42,7 +47,6 @@ class MainViewModel : ViewModel() {
     }
 
 
-
     fun sendRequest() {
         viewModelScope.launch {
             try {
@@ -51,7 +55,10 @@ class MainViewModel : ViewModel() {
                 val gptResponse = gson.fromJson(response.value, GptResponse::class.java)
                 Log.i(">>", "suggestions: ${gptResponse.choices[0].message.content}")
 
-                val suggestions = gson.fromJson(gptResponse.choices[0].message.content, SuggestionList::class.java)
+                val suggestions = gson.fromJson(
+                    gptResponse.choices[0].message.content,
+                    SuggestionList::class.java
+                )
                 updateAddressInSuggestions(suggestions)
                 suggestionList.value = suggestions
                 Log.i(">>", "suggestions: ${suggestionList.value}")
@@ -61,9 +68,11 @@ class MainViewModel : ViewModel() {
             }
         }
     }
-    public fun updateMessage(newMessage:String) {
+
+    public fun updateMessage(newMessage: String) {
         gpt.addMessage(newMessage)
     }
+
     fun updatePhotoItemLocationId(suggestionId: Int, locationId: String) {
         val currentList = taPhotoResult.value ?: mutableListOf()
 
@@ -75,6 +84,7 @@ class MainViewModel : ViewModel() {
             taPhotoResult.value = currentList
         }
     }
+
     fun updatePhotoItemImgUrl(suggestionId: Int, imgUrl: String) {
         val currentList = taPhotoResult.value ?: mutableListOf()
 
@@ -86,6 +96,7 @@ class MainViewModel : ViewModel() {
             taPhotoResult.value = currentList
         }
     }
+
     fun updatePhotoItemResponseString(suggestionId: Int, responseString: String) {
         val currentList = taPhotoResult.value ?: mutableListOf()
 
@@ -95,19 +106,51 @@ class MainViewModel : ViewModel() {
 
             // Update the LiveData
             taPhotoResult.value = currentList
-        } else {
-            // Handle the case where the suggestionId is out of bounds
-        }
-    }
-    fun addItineraryItem(itineraryItem: ItineraryItem) {
-        val currentItinerary = itinerary.value ?: mutableListOf()
-        currentItinerary.add(itineraryItem)
-        itinerary.value = currentItinerary
-        if (itinerary != null) {
-            for (item in itinerary.value!!) {
-                Log.d(">>ItineraryLog", item.toString())
-            }
         }
     }
 
+
+    fun updateItinerary(items: List<ItineraryItem>) {
+        itinerary.postValue(items.toMutableList())
+        Log.i(">>MainViewModel", "Itinerary updated")
+    }
+
+    fun transformItineraryToSuggestionList(itineraryItems: List<ItineraryItem>) {
+        val suggestions = mutableListOf<Suggestion>()
+        val reversedItineraryItems = itineraryItems.reversed()
+        for (item in reversedItineraryItems) {
+            suggestions.add(
+                Suggestion(
+                    item.imgUrl,
+                    item.locationName,
+                    "",
+                    "",
+                    "",
+                    "",
+                    item.description,
+                    item.locationId,
+                    item.responseString
+                )
+            )
+        }
+        loadedSuggestionList.postValue(suggestions.toMutableList())
+    }
+
+    fun transformItineraryToTaPhotoResult(itineraryItems: MutableList<ItineraryItem>) {
+        val taPhotoItems = mutableListOf<TAPhotoItem>()
+        val reversedItineraryItems = itineraryItems.reversed()
+        for (item in reversedItineraryItems) {
+            taPhotoItems.add(
+                TAPhotoItem(
+                    item.locationId,
+                    item.responseString,
+                    item.imgUrl
+                )
+            )
+        }
+        taPhotoResult.postValue(taPhotoItems.toMutableList())
+    }
+
+
 }
+

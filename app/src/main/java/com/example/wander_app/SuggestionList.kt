@@ -9,8 +9,8 @@ data class Suggestion(
     val name: String,
     val address: String,
     var streetAddress: String,
-    val longitude: Double,
-    val latitude: Double,
+    val longitude: String,
+    val latitude: String,
     val description: String,
     val locationId: String,
     val taApiResponse: String

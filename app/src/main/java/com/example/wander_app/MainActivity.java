@@ -38,6 +38,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -67,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
 
         setContentView(binding.getRoot());
-        viewModel = new ViewModelProvider(this).get(MainViewModel.class);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         registerReceiver(apiReceiver, new IntentFilter(
                 APIRequestService.Broadcast_id));
@@ -77,6 +77,9 @@ public class MainActivity extends AppCompatActivity {
                 Database.class,
                 "itinerary"
         ).build();
+
+
+        viewModel = new ViewModelProvider(this).get(MainViewModel.class);
 
         imageViews = new ImageView[]{
                 (binding.ivList01),
@@ -132,22 +135,26 @@ public class MainActivity extends AppCompatActivity {
         });
 
         binding.btSaveToItinerary.setOnClickListener(v -> {
+            List<ItineraryItem> items = new ArrayList<>();
             for (int i = 0; i < 6; i++) {
-            Integer suggestionId = i;
-            String locationId = viewModel.getTaPhotoResult().getValue().get(i).getLocationId();
-            String responseString = viewModel.getTaPhotoResult().getValue().get(i).getResponseString();
-            String imageUrl = viewModel.getTaPhotoResult().getValue().get(i).getImgUrl();
-            String locationName = viewModel.getSuggestionList().getValue().getSuggestions().get(i).getName();
-            String description = viewModel.getSuggestionList().getValue().getSuggestions().get(i).getDescription();
-            ItineraryItem itineraryItem = new ItineraryItem(suggestionId, locationId, responseString, locationName, description, imageUrl, 0);
-            viewModel.addItineraryItem(itineraryItem);
+                Integer suggestionId = i;
+                String locationId = viewModel.getTaPhotoResult().getValue().get(i).getLocationId();
+                String responseString = viewModel.getTaPhotoResult().getValue().get(i).getResponseString();
+                String imageUrl = viewModel.getTaPhotoResult().getValue().get(i).getImgUrl();
+                String locationName = viewModel.getSuggestionList().getValue().getSuggestions().get(i).getName();
+                String description = viewModel.getSuggestionList().getValue().getSuggestions().get(i).getDescription();
+                ItineraryItem itineraryItem = new ItineraryItem(suggestionId, locationId, responseString, locationName, description, imageUrl, 0);
+                items.add(itineraryItem);
             }
-            List<ItineraryItem> items = viewModel.getItinerary().getValue();
+
             if (items != null) {
                 saveItineraryItems(db, items);
             }
-            viewModel.getItinerary().getValue().clear();
+            Log.i(">>MainActivity", "onCreate: " + "Itinerary saved");
+        });
 
+        binding.btnLoadItinerary.setOnClickListener(v -> {
+            fetchLastInsertedItineraryItems(db);
         });
 
         viewModel.getResponse().observe(this, response -> {
@@ -179,39 +186,71 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 0; i < suggestionList.getSuggestions().size(); i++) {
                 try {
                     String streetAddress = suggestionList.getSuggestions().get(i).getStreetAddress();
-                    String latitude = String.valueOf(suggestionList.getSuggestions().get(i).getLatitude());
-                    String longitude = String.valueOf(suggestionList.getSuggestions().get(i).getLongitude());
+                    String latitude = suggestionList.getSuggestions().get(i).getLatitude();
+                    String longitude = suggestionList.getSuggestions().get(i).getLongitude();
                     makeSearchRequest(longitude, latitude, streetAddress, String.valueOf(i));
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
             }
-
-
         });
 
-    viewModel.getTaSearchResult().observe(this, taSearchResult -> {
-        Log.i(">>MainActivity", "TA Search Result updated");
-        for (TASearchItem item : taSearchResult.getSearchItems()) {
-            Log.i(">>MainActivity", "TA Search Item: " + item.toString());
-        }
-        if (taSearchResult.getSearchItems().size() == 6) {
-            for (int i = 0; i < taSearchResult.getSearchItems().size(); i++) {
-                TASearchItem item = taSearchResult.getSearchItems().get(i);
-                String locationId = item.getLocationId();
-//                taPhotoItems[i].setLocationId(locationId);
-                String taPicEndpoint = createTaEndpoint("photos", locationId);
-                Log.i(">>MainActivity", "Call TA Pic Endpoint: " + taPicEndpoint);
-                Intent intentTA = new Intent(getBaseContext(), APIRequestService.class);
-                intentTA.putExtra("callerID", ID);
-                intentTA.putExtra("apiUrl", taPicEndpoint);
-                intentTA.putExtra("apiType", "photos");
-                intentTA.putExtra("suggestionId", item.getSuggestionId());
-                startService(intentTA);
-            }
-        }
-    });
+        viewModel.getLoadedSuggestionList().observe(this, suggestionList -> {
+            Log.i("MainActivity", "onCreate: " + suggestionList);
+            binding.tvList01Description.setText(suggestionList.get(0).getDescription());
+            binding.tvList01Name.setText(suggestionList.get(0).getName());
+            binding.tvList02Description.setText(suggestionList.get(1).getDescription());
+            binding.tvList02Name.setText(suggestionList.get(1).getName());
+            binding.tvList03Description.setText(suggestionList.get(2).getDescription());
+            binding.tvList03Name.setText(suggestionList.get(2).getName());
+            binding.tvList04Description.setText(suggestionList.get(3).getDescription());
+            binding.tvList04Name.setText(suggestionList.get(3).getName());
+            binding.tvList05Description.setText(suggestionList.get(4).getDescription());
+            binding.tvList05Name.setText(suggestionList.get(4).getName());
+            binding.tvList06Description.setText(suggestionList.get(5).getDescription());
+            binding.tvList06Name.setText(suggestionList.get(5).getName());
+            binding.svSuggestions.setVisibility(View.VISIBLE);
 
+            for (int i = 0; i < 6; i++) {
+                String imgUrl = viewModel.getLoadedSuggestionList().getValue().get(i).getImg();
+                Log.i(">>MainActivity", "Loaded img url: " + imgUrl);
+                if (imgUrl != null && !imgUrl.trim().isEmpty()) {
+                    Glide.with(getBaseContext()).load(imgUrl).into(imageViews[i]);
+                } else{
+                    Log.i(">>MainActivity", "onCreate: " + "No image url found");
+                    imageViews[i].setImageResource(R.drawable.default_picture);
+                }
+            }
+        });
+
+
+        viewModel.getTaSearchResult().observe(this, taSearchResult -> {
+            Log.i(">>MainActivity", "TA Search Result updated");
+            for (TASearchItem item : taSearchResult.getSearchItems()) {
+                Log.i(">>MainActivity", "TA Search Item: " + item.toString());
+            }
+            if (taSearchResult.getSearchItems().size() == 6) {
+                for (int i = 0; i < taSearchResult.getSearchItems().size(); i++) {
+                    TASearchItem item = taSearchResult.getSearchItems().get(i);
+                    String locationId = item.getLocationId();
+//                taPhotoItems[i].setLocationId(locationId);
+                    String taPicEndpoint = createTaEndpoint("photos", locationId);
+                    Log.i(">>MainActivity", "Call TA Pic Endpoint: " + taPicEndpoint);
+                    Intent intentTA = new Intent(getBaseContext(), APIRequestService.class);
+                    intentTA.putExtra("callerID", ID);
+                    intentTA.putExtra("apiUrl", taPicEndpoint);
+                    intentTA.putExtra("apiType", "photos");
+                    intentTA.putExtra("suggestionId", item.getSuggestionId());
+                    startService(intentTA);
+                }
+            }
+        });
+
+        viewModel.getItinerary().observe(this, itineraryItems -> {
+            viewModel.transformItineraryToSuggestionList(itineraryItems);
+            viewModel.transformItineraryToTaPhotoResult(itineraryItems);
+
+        });
 
         viewModel.getLocation().observe(this, location -> {
             Log.i("MainActivity", "onCreate: " + location);
@@ -252,11 +291,11 @@ public class MainActivity extends AppCompatActivity {
         requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 44);
     }
 
-    private void checkAudioPermission() {
-        Log.i("MainActivity", "AskForPermission: " + "Asking for audio permission");
-        requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO},1);
-
-    }
+//    private void checkAudioPermission() {
+//        Log.i("MainActivity", "AskForPermission: " + "Asking for audio permission");
+//        requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 1);
+//
+//    }
 
     private void showDatePickerDialog() {
         // Use the current date as the default date in the picker
@@ -282,7 +321,7 @@ public class MainActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-    public void onClickButton (View view) {
+    public void onClickButton(View view) {
         Intent detailsIntent = new Intent(MainActivity.this, DetailsActivity.class);
         startActivity(detailsIntent);
     }
@@ -333,7 +372,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     private BroadcastReceiver apiReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -342,7 +380,7 @@ public class MainActivity extends AppCompatActivity {
             if (intent != null && intent.getStringExtra("callerID").equals(ID)) {
                 try {
                     response = new JSONObject(intent.getStringExtra("jsonObject"));
-                    String suggestionId  = intent.getStringExtra("suggestionId");
+                    String suggestionId = intent.getStringExtra("suggestionId");
                     String apiType = intent.getStringExtra("apiType");
                     Log.i(">>Receiver", "Suggestion ID: " + suggestionId);
                     if (apiType.equals("TripAdvisor_Search")) {
@@ -350,53 +388,53 @@ public class MainActivity extends AppCompatActivity {
                         TASearchItem taSearchItem = new TASearchItem(suggestionId, "0000");
                         if (response.has("data")) {
                             JSONArray dataArray = response.getJSONArray("data");
-                                if (dataArray.length() > 0) {
-                                    JSONObject data = null;
-                                    // New logic to find the matching name
-                                    String textViewText = textViews[Integer.parseInt(suggestionId)].getText().toString();
-                                    for (int i = 0; i < dataArray.length(); i++) {
-                                        JSONObject tempObj = dataArray.getJSONObject(i);
-                                        String name = tempObj.getString("name");
-                                        if (tempObj.has("name") && (name.equals(textViewText) || name.contains(textViewText) || textViewText.contains(name))) {
-                                            Log.i(">>Receiver", "Found matching name: " + tempObj.getString("name"));
-                                            data = tempObj;
-                                            break;
-                                        }
+                            if (dataArray.length() > 0) {
+                                JSONObject data = null;
+                                // New logic to find the matching name
+                                String textViewText = textViews[Integer.parseInt(suggestionId)].getText().toString();
+                                for (int i = 0; i < dataArray.length(); i++) {
+                                    JSONObject tempObj = dataArray.getJSONObject(i);
+                                    String name = tempObj.getString("name");
+                                    if (tempObj.has("name") && (name.equals(textViewText) || name.contains(textViewText) || textViewText.contains(name))) {
+                                        Log.i(">>Receiver", "Found matching name: " + tempObj.getString("name"));
+                                        data = tempObj;
+                                        break;
+                                    }
+                                }
+
+                                // Default to first item if no match is found
+                                if (data == null) {
+                                    data = dataArray.getJSONObject(0);
+                                }
+
+                                Log.i(">>Receiver", "Search Data: " + data.toString());
+                                if (data.has("location_id")) {
+                                    String locationId = data.getString("location_id");
+                                    //update location id in the taPhotoResult
+                                    viewModel.updatePhotoItemLocationId(Integer.parseInt(suggestionId), locationId);
+                                    for (TAPhotoItem item : viewModel.getTaPhotoResult().getValue()) {
+                                        Log.d(">>PhotoItemLog", item.toString());
                                     }
 
-                                    // Default to first item if no match is found
-                                    if (data == null) {
-                                        data = dataArray.getJSONObject(0);
-                                    }
-
-                                    Log.i(">>Receiver", "Search Data: " + data.toString());
-                                    if (data.has("location_id")) {
-                                        String locationId = data.getString("location_id");
-                                        //update location id in the taPhotoResult
-                                        viewModel.updatePhotoItemLocationId(Integer.parseInt(suggestionId), locationId);
-                                        for (TAPhotoItem item : viewModel.getTaPhotoResult().getValue()){
-                                            Log.d(">>PhotoItemLog", item.toString());
-                                        }
-
-                                        taSearchItem.setLocationID(locationId);
-                                        viewModel.addSearchItem(taSearchItem);
-                                    } else {
-                                        viewModel.addSearchItem(taSearchItem);
-                                    }
+                                    taSearchItem.setLocationID(locationId);
+                                    viewModel.addSearchItem(taSearchItem);
                                 } else {
-                                    taSearchItem.setLocationID("");
                                     viewModel.addSearchItem(taSearchItem);
                                 }
+                            } else {
+                                taSearchItem.setLocationID("");
+                                viewModel.addSearchItem(taSearchItem);
+                            }
                         }
 
                         Log.i(">>Receiver", "taSearchResult " + viewModel.getTaSearchResult().getValue().toString());
                     }
                     if (apiType.equals("photos")) {
-    //                    taPhotoItems[Integer.parseInt(suggestionId)].setResponseString(response.toString());
+                        //                    taPhotoItems[Integer.parseInt(suggestionId)].setResponseString(response.toString());
                         Log.i(">>Receiver", "Photo Response: " + response);
                         //update photo item response string
                         viewModel.updatePhotoItemResponseString(Integer.parseInt(suggestionId), response.toString());
-                        for (TAPhotoItem item : viewModel.getTaPhotoResult().getValue()){
+                        for (TAPhotoItem item : viewModel.getTaPhotoResult().getValue()) {
                             Log.d(">>PhotoItemLog", item.toString());
                         }
                         if (response.has("data")) {
@@ -422,6 +460,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+
     private String coordEncoder(String coords) {
         String cleanedCoordinates = coords.replaceAll("[^0-9,.\\-]", "").replaceAll("\\s", "");
 
@@ -447,6 +486,7 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
     }
+
     private String createTaEndpoint(String endpointType, String locationId) {
         return TRIP_ADVISOR_LOCATION_ENDPOINT + "/" + locationId + "/" + endpointType + "?key=" + tripAdvisorKey + "&language=en";
     }
@@ -458,7 +498,21 @@ public class MainActivity extends AppCompatActivity {
                 for (ItineraryItem item : items) {
                     database.itineraryItemDao().insert(item);
                 }
+                viewModel.updateItinerary(items);
             }
         }).start();
     }
+
+    public void fetchLastInsertedItineraryItems(Database database) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                List<ItineraryItem> items = database.itineraryItemDao().getLastInsertedItineraryItems();
+                Log.i(">>MainActivity", "fetchLastInsertedItineraryItems: " + items.toString());
+                viewModel.updateItinerary(items);
+            }
+        }).start();
+    }
+
+
 }
