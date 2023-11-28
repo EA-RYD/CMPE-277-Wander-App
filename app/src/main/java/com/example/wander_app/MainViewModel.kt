@@ -1,15 +1,12 @@
 package com.example.wander_app
 
-import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bumptech.glide.Glide.init
 import com.google.gson.Gson
 import com.tutorial.chatgptapp.ChatGptRepository
 import kotlinx.coroutines.launch
-import java.io.UnsupportedEncodingException
 
 
 class MainViewModel : ViewModel() {
@@ -19,18 +16,20 @@ class MainViewModel : ViewModel() {
     val location = MutableLiveData<String>()
     val suggestionList = MutableLiveData<SuggestionList>()
     val taSearchResult = MutableLiveData<TASearchResult>()
-    val taPhotoResult = MutableLiveData<MutableList<TAPhotoItem>>()
-
     init {
         // Initialize with an empty TASearchResult
         taSearchResult.value = TASearchResult()
     }
-
+    val taPhotoResult = MutableLiveData<MutableList<TAPhotoItem>>()
     init {
         // Initialize the MutableLiveData with a MutableList containing 6 TAPhotoItem instances
         val initialPhotoItems = MutableList(6) { TAPhotoItem() } // Replace TAPhotoItem() with appropriate constructor call if needed
         taPhotoResult.value = initialPhotoItems
     }
+
+    val itinerary = MutableLiveData<MutableList<ItineraryItem>>()
+
+
 
     fun addSearchItem(taSearchItem: TASearchItem) {
         val currentResult = taSearchResult.value ?: TASearchResult()
@@ -74,8 +73,17 @@ class MainViewModel : ViewModel() {
 
             // Update the LiveData
             taPhotoResult.value = currentList
-        } else {
-            // Handle the case where the suggestionId is out of bounds
+        }
+    }
+    fun updatePhotoItemImgUrl(suggestionId: Int, imgUrl: String) {
+        val currentList = taPhotoResult.value ?: mutableListOf()
+
+        if (suggestionId in currentList.indices) {
+            val photoItem = currentList[suggestionId]
+            photoItem.imgUrl = imgUrl
+
+            // Update the LiveData
+            taPhotoResult.value = currentList
         }
     }
     fun updatePhotoItemResponseString(suggestionId: Int, responseString: String) {
@@ -89,6 +97,16 @@ class MainViewModel : ViewModel() {
             taPhotoResult.value = currentList
         } else {
             // Handle the case where the suggestionId is out of bounds
+        }
+    }
+    fun addItineraryItem(itineraryItem: ItineraryItem) {
+        val currentItinerary = itinerary.value ?: mutableListOf()
+        currentItinerary.add(itineraryItem)
+        itinerary.value = currentItinerary
+        if (itinerary != null) {
+            for (item in itinerary.value!!) {
+                Log.d(">>ItineraryLog", item.toString())
+            }
         }
     }
 

@@ -5,6 +5,8 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.room.Room;
+
 import com.bumptech.glide.Glide;
 
 import android.app.DatePickerDialog;
@@ -70,6 +72,12 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(apiReceiver, new IntentFilter(
                 APIRequestService.Broadcast_id));
 
+        Database db = Room.databaseBuilder(
+                this,
+                Database.class,
+                "itinerary"
+        ).build();
+
         imageViews = new ImageView[]{
                 (binding.ivList01),
                 (binding.ivList02),
@@ -121,6 +129,25 @@ public class MainActivity extends AppCompatActivity {
 
         binding.btnCalendar.setOnClickListener(v -> {
             showDatePickerDialog();
+        });
+
+        binding.btSaveToItinerary.setOnClickListener(v -> {
+            for (int i = 0; i < 6; i++) {
+            Integer suggestionId = i;
+            String locationId = viewModel.getTaPhotoResult().getValue().get(i).getLocationId();
+            String responseString = viewModel.getTaPhotoResult().getValue().get(i).getResponseString();
+            String imageUrl = viewModel.getTaPhotoResult().getValue().get(i).getImgUrl();
+            String locationName = viewModel.getSuggestionList().getValue().getSuggestions().get(i).getName();
+            String description = viewModel.getSuggestionList().getValue().getSuggestions().get(i).getDescription();
+            ItineraryItem itineraryItem = new ItineraryItem(suggestionId, locationId, responseString, locationName, description, imageUrl, 0);
+            viewModel.addItineraryItem(itineraryItem);
+            }
+            List<ItineraryItem> items = viewModel.getItinerary().getValue();
+            if (items != null) {
+                saveItineraryItems(db, items);
+            }
+            viewModel.getItinerary().getValue().clear();
+
         });
 
         viewModel.getResponse().observe(this, response -> {
@@ -381,6 +408,7 @@ public class MainActivity extends AppCompatActivity {
                                 if (images.has("medium")) {
                                     JSONObject mediumImage = images.getJSONObject("medium");
                                     String imageUrl = mediumImage.getString("url");
+                                    viewModel.updatePhotoItemImgUrl(Integer.parseInt(suggestionId), imageUrl);
                                     Log.i(">>Receiver", "Image URL: " + imageUrl);
                                     Glide.with(getBaseContext()).load(imageUrl).into(imageViews[Integer.parseInt(suggestionId)]);
                                 }
@@ -423,5 +451,14 @@ public class MainActivity extends AppCompatActivity {
         return TRIP_ADVISOR_LOCATION_ENDPOINT + "/" + locationId + "/" + endpointType + "?key=" + tripAdvisorKey + "&language=en";
     }
 
-
+    private void saveItineraryItems(Database database, List<ItineraryItem> items) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (ItineraryItem item : items) {
+                    database.itineraryItemDao().insert(item);
+                }
+            }
+        }).start();
+    }
 }
