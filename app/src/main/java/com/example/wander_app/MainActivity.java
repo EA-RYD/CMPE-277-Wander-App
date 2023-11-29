@@ -1,8 +1,10 @@
 package com.example.wander_app;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleObserver;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.room.Room;
@@ -18,13 +20,16 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.os.Bundle;
 import android.Manifest;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -201,33 +206,33 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        viewModel.getLoadedSuggestionList().observe(this, suggestionList -> {
-            Log.i("MainActivity", "onCreate: " + suggestionList);
-            binding.tvList01Description.setText(suggestionList.get(0).getDescription());
-            binding.tvList01Name.setText(suggestionList.get(0).getName());
-            binding.tvList02Description.setText(suggestionList.get(1).getDescription());
-            binding.tvList02Name.setText(suggestionList.get(1).getName());
-            binding.tvList03Description.setText(suggestionList.get(2).getDescription());
-            binding.tvList03Name.setText(suggestionList.get(2).getName());
-            binding.tvList04Description.setText(suggestionList.get(3).getDescription());
-            binding.tvList04Name.setText(suggestionList.get(3).getName());
-            binding.tvList05Description.setText(suggestionList.get(4).getDescription());
-            binding.tvList05Name.setText(suggestionList.get(4).getName());
-            binding.tvList06Description.setText(suggestionList.get(5).getDescription());
-            binding.tvList06Name.setText(suggestionList.get(5).getName());
-            binding.llSuggestions.setVisibility(View.VISIBLE);
-
-            for (int i = 0; i < 6; i++) {
-                String imgUrl = viewModel.getLoadedSuggestionList().getValue().get(i).getImg();
-                Log.i(">>MainActivity", "Loaded img url: " + imgUrl);
-                if (imgUrl != null && !imgUrl.trim().isEmpty()) {
-                    Glide.with(getBaseContext()).load(imgUrl).into(imageViews[i]);
-                } else{
-                    Log.i(">>MainActivity", "onCreate: " + "No image url found");
-                    imageViews[i].setImageResource(R.drawable.default_picture);
-                }
-            }
-        });
+//        viewModel.getLoadedSuggestionList().observe(this, suggestionList -> {
+//            Log.i("MainActivity", "onCreate: " + suggestionList);
+//            binding.tvList01Description.setText(suggestionList.get(0).getDescription());
+//            binding.tvList01Name.setText(suggestionList.get(0).getName());
+//            binding.tvList02Description.setText(suggestionList.get(1).getDescription());
+//            binding.tvList02Name.setText(suggestionList.get(1).getName());
+//            binding.tvList03Description.setText(suggestionList.get(2).getDescription());
+//            binding.tvList03Name.setText(suggestionList.get(2).getName());
+//            binding.tvList04Description.setText(suggestionList.get(3).getDescription());
+//            binding.tvList04Name.setText(suggestionList.get(3).getName());
+//            binding.tvList05Description.setText(suggestionList.get(4).getDescription());
+//            binding.tvList05Name.setText(suggestionList.get(4).getName());
+//            binding.tvList06Description.setText(suggestionList.get(5).getDescription());
+//            binding.tvList06Name.setText(suggestionList.get(5).getName());
+//            binding.llSuggestions.setVisibility(View.VISIBLE);
+//
+//            for (int i = 0; i < 6; i++) {
+//                String imgUrl = viewModel.getLoadedSuggestionList().getValue().get(i).getImg();
+//                Log.i(">>MainActivity", "Loaded img url: " + imgUrl);
+//                if (imgUrl != null && !imgUrl.trim().isEmpty()) {
+//                    Glide.with(getBaseContext()).load(imgUrl).into(imageViews[i]);
+//                } else{
+//                    Log.i(">>MainActivity", "onCreate: " + "No image url found");
+//                    imageViews[i].setImageResource(R.drawable.default_picture);
+//                }
+//            }
+//        });
 
 
         viewModel.getTaSearchResult().observe(this, taSearchResult -> {
@@ -255,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
         viewModel.getItinerary().observe(this, itineraryItems -> {
             viewModel.transformItineraryToSuggestionList(itineraryItems);
             viewModel.transformItineraryToTaPhotoResult(itineraryItems);
-
+            createItineraryCard();
         });
 
         viewModel.getLocation().observe(this, location -> {
@@ -297,11 +302,6 @@ public class MainActivity extends AppCompatActivity {
         requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 44);
     }
 
-//    private void checkAudioPermission() {
-//        Log.i("MainActivity", "AskForPermission: " + "Asking for audio permission");
-//        requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 1);
-//
-//    }
 
     private void showDatePickerDialog() {
         // Use the current date as the default date in the picker
@@ -523,5 +523,18 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
+    private void createItineraryCard() {
+        CardView cv = findViewById(R.id.cvItinerary);
+        ArrayList itineraryItems = new ArrayList(viewModel.getItinerary().getValue());
+        Log.i(">>MainActivity", "createItineraryCard: " + itineraryItems.size() );
+        for (Object item : itineraryItems) {
+            Log.i(">>MainActivity", "createItineraryCard: " + item.toString());
+        }
+        ItineraryListAdapter listAdapter = new ItineraryListAdapter(this, itineraryItems);
+        ListView listView = findViewById(R.id.lvItineraryList);
+        listView.setAdapter(listAdapter);
+        cv.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+
+    }
 
 }

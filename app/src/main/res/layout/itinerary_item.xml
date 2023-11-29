@@ -4,48 +4,49 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
+    <LinearLayout
+        android:id="@+id/linLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/ivLocationPicture"
+            android:layout_height="112dp"
+            android:layout_width="93dp"
+            android:layout_marginLeft="5dp"
+            android:src="@mipmap/ic_launcher" />
+
         <LinearLayout
-            android:id="@+id/linLayout1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
-            <ImageView
-                android:id="@+id/userAvatar"
+            <TextView
+                android:id="@+id/tvLocationName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
-                android:src="@mipmap/ic_launcher" />
+                android:text="test location name"
+                android:textColor="@color/black" />
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/tvDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_marginLeft="5dp"
+                android:text="test description" />
 
-                <TextView
-                    android:id="@+id/locationName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:text="test location name"
-                    android:textColor="@color/black" />
-
-                <TextView
-                    android:id="@+id/description"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="test description" />
-
-            </LinearLayout>
         </LinearLayout>
+    </LinearLayout>
 
     <Button
         android:id="@+id/btnDeleteFromItinerary"
+        style="@style/WanderAppTheme.Button.GrayOutline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Delete"
         android:layout_gravity="end"
-        style="@style/WanderAppTheme.Button.GrayOutline"/>
+        android:text="Delete" />
 
 </LinearLayout>

@@ -2,19 +2,22 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/flRoot"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginRight="10dp"
+    android:layout_marginLeft="10dp"
     android:orientation="vertical">
 
     <ScrollView
-
+        android:id="@+id/svRoot"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:fillViewport="true">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             tools:context=".MainActivity">
 
             <LinearLayout
@@ -151,21 +154,23 @@
                 app:layout_constraintStart_toEndOf="@+id/btnSendRequest"
                 app:layout_constraintTop_toTopOf="@+id/btnSendRequest" />
 
-<!--            <ScrollView-->
-<!--                android:id="@+id/svSuggestions"-->
-<!--                android:layout_width="384dp"-->
-<!--                android:layout_height="493dp"-->
-<!--                android:layout_marginTop="20dp"-->
-<!--                android:visibility="invisible"-->
-<!--                app:layout_constraintEnd_toEndOf="parent"-->
-<!--                app:layout_constraintHorizontal_bias="0.502"-->
-<!--                app:layout_constraintStart_toStartOf="parent"-->
-<!--                app:layout_constraintTop_toBottomOf="@+id/btnSendRequest">-->
+            <!--            <ScrollView-->
+            <!--                android:id="@+id/svSuggestions"-->
+            <!--                android:layout_width="384dp"-->
+            <!--                android:layout_height="493dp"-->
+            <!--                android:layout_marginTop="20dp"-->
+            <!--                android:visibility="invisible"-->
+            <!--                app:layout_constraintEnd_toEndOf="parent"-->
+            <!--                app:layout_constraintHorizontal_bias="0.502"-->
+            <!--                app:layout_constraintStart_toStartOf="parent"-->
+            <!--                app:layout_constraintTop_toBottomOf="@+id/btnSendRequest">-->
 
             <LinearLayout
                 android:id="@+id/llSuggestions"
                 android:layout_width="408dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
                 android:orientation="vertical"
                 android:visibility="invisible"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -517,7 +522,7 @@
                     android:text="Save to Itinerary" />
 
             </LinearLayout>
-<!--            </ScrollView>-->
+            <!--            </ScrollView>-->
 
 
             <ProgressBar
@@ -558,9 +563,10 @@
                 app:layout_constraintTop_toTopOf="@+id/tvPreferences" />
 
             <androidx.cardview.widget.CardView
-                android:id="@+id/cardViewItinerary"
-                android:layout_width="330dp"
+                android:id="@+id/cvItinerary"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
                 android:layout_marginTop="10dp"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
@@ -568,7 +574,7 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="4dp">
 
@@ -581,14 +587,38 @@
                         android:textSize="24sp" />
 
                     <ListView
-                        android:id="@+id/reviewList"
+                        android:id="@+id/lvItineraryList"
                         android:layout_width="match_parent"
-                        android:layout_height="300dp"
+                        android:layout_height="wrap_content"
                         tools:listitem="@layout/itinerary_item" />
 
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/cvItinerary">
+
+                <EditText
+                    android:id="@+id/etEmail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="foo@gmail.com"
+                    android:gravity="center"
+                    android:inputType="textEmailAddress" />
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="Send Itinerary to Email" />
+            </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
+
     </ScrollView>
 </FrameLayout>
