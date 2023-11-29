@@ -171,6 +171,7 @@
                 android:orientation="horizontal">
 
                 <CheckBox
+                    android:visibility="invisible"
                     android:id="@+id/cbList01"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
@@ -227,6 +228,7 @@
                 android:orientation="horizontal">
 
                 <CheckBox
+                    android:visibility="invisible"
                     android:id="@+id/cbList02"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
@@ -283,6 +285,7 @@
                 android:orientation="horizontal">
 
                 <CheckBox
+                    android:visibility="invisible"
                     android:id="@+id/cbList03"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
@@ -339,6 +342,7 @@
                 android:orientation="horizontal">
 
                 <CheckBox
+                    android:visibility="invisible"
                     android:id="@+id/cbList04"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
@@ -395,6 +399,7 @@
                 android:orientation="horizontal">
 
                 <CheckBox
+                    android:visibility="invisible"
                     android:id="@+id/cbList05"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
@@ -451,6 +456,7 @@
                 android:orientation="horizontal">
 
                 <CheckBox
+                    android:visibility="invisible"
                     android:id="@+id/cbList06"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
