@@ -535,6 +535,7 @@ public class MainActivity extends AppCompatActivity {
         listView.setAdapter(listAdapter);
         cv.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
 
+
     }
 
 }
