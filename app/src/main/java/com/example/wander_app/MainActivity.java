@@ -181,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
             binding.tvList05Name.setText(suggestionList.getSuggestions().get(4).getName());
             binding.tvList06Description.setText(suggestionList.getSuggestions().get(5).getDescription());
             binding.tvList06Name.setText(suggestionList.getSuggestions().get(5).getName());
-            binding.svSuggestions.setVisibility(View.VISIBLE);
+            binding.llSuggestions.setVisibility(View.VISIBLE);
 
 //            reset image and search results
             viewModel.getTaSearchResult().getValue().getSearchItems().clear();
@@ -215,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
             binding.tvList05Name.setText(suggestionList.get(4).getName());
             binding.tvList06Description.setText(suggestionList.get(5).getDescription());
             binding.tvList06Name.setText(suggestionList.get(5).getName());
-            binding.svSuggestions.setVisibility(View.VISIBLE);
+            binding.llSuggestions.setVisibility(View.VISIBLE);
 
             for (int i = 0; i < 6; i++) {
                 String imgUrl = viewModel.getLoadedSuggestionList().getValue().get(i).getImg();
