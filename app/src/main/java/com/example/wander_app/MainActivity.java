@@ -2,12 +2,9 @@ package com.example.wander_app;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.room.Room;
-
-import com.bumptech.glide.Glide;
 
 import android.app.DatePickerDialog;
 import android.content.BroadcastReceiver;
@@ -24,15 +21,10 @@ import android.Manifest;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.DatePicker;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.wander_app.databinding.ActivityMainBinding;
@@ -60,10 +52,7 @@ public class MainActivity extends AppCompatActivity {
     private String tripAdvisorKey = "DA033993B5A145549DCEF7D9486BBE21";
 
     private final String ID = "main";
-    private String nameLocation = "";
-    private String addressLocation = "";
-
-//    private ProgressBar loadIndicator;
+    private ProgressBar loadIndicator;
 
     private final String TRIP_ADVISOR_LOCATION_ENDPOINT = "https://api.content.tripadvisor.com/api/v1/location";
 
@@ -87,11 +76,11 @@ public class MainActivity extends AppCompatActivity {
 
 
         viewModel = new ViewModelProvider(this).get(MainViewModel.class);
-//        loadIndicator = findViewById(R.id.loadingBar);
+        loadIndicator = findViewById(R.id.loadingBar);
 
 
         binding.btnSendRequest.setOnClickListener(v -> {
-//            loadIndicator.setVisibility(View.VISIBLE);
+            loadIndicator.setVisibility(View.VISIBLE);
             viewModel.updateMessage(binding.etLocation.getText().toString());
             String preferenceText = binding.etPreference.getText().toString();
             if (!preferenceText.isEmpty()) {
@@ -143,24 +132,15 @@ public class MainActivity extends AppCompatActivity {
             Log.i("MainActivity", "onCreate: " + response);
         });
 
-        viewModel.getSuggestionList().observe(this, suggestionList -> {
+        viewModel.getRawSuggestionList().observe(this, suggestionList -> {
             Log.i("MainActivity", "onCreate: " + suggestionList);
-            createSuggestionListCard();
-//            reset image and search results
-            viewModel.getTaSearchResult().getValue().getSearchItems().clear();
+            viewModel.getSuggestionList().postValue(suggestionList);
+            makeTASearchApiCalls(suggestionList);
+        });
 
-            //make search request for each suggestion
-            for (int i = 0; i < suggestionList.getSuggestions().size(); i++) {
-                try {
-                    Log.i(">>MainActivity", "Preparing to make search TA api call" );
-                    String streetAddress = suggestionList.getSuggestions().get(i).getStreetAddress();
-                    String latitude = suggestionList.getSuggestions().get(i).getLatitude();
-                    String longitude = suggestionList.getSuggestions().get(i).getLongitude();
-                    makeSearchRequest(longitude, latitude, streetAddress, String.valueOf(i));
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-            }
+        viewModel.getSuggestionList().observe(this, suggestionList -> {
+            Log.i("MainActivity", "onCreate: SuggestionList Updated: " + suggestionList);
+            createSuggestionListCard(suggestionList);
         });
 
 
@@ -258,59 +238,6 @@ public class MainActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-
-//    private void onDetailButtonClick(View v) {
-//        String btnId = String.valueOf(v.getId());
-//
-//        if (btnId.length() >= 1) {
-//            String lastChar = btnId.substring(btnId.length() - 1);
-//            try {
-//                int id = Integer.parseInt(lastChar);
-//                Log.i(">>MainActivity", "Clicked Button ID: " + id);
-//                // Open details activity
-//                Intent detailsIntent = new Intent(MainActivity.this, DetailsActivity.class);
-//                String tempId = viewModel.getTaPhotoResult().getValue().get(id - 2).getLocationId();
-//                String tempResp = viewModel.getTaPhotoResult().getValue().get(id - 2).getResponseString();
-//                Log.i(">>MainActivity", "onButtonClick: location_id " + viewModel.getTaPhotoResult().getValue().get(id - 2).getLocationId());
-//                Log.i(">>MainActivity", "onButtonClick: response_string " + viewModel.getTaPhotoResult().getValue().get(id - 2).getResponseString());
-//
-//                if (!tempId.isEmpty()) {
-//                    detailsIntent.putExtra("locationId", viewModel.getTaPhotoResult().getValue().get(id - 2).getLocationId());
-//                    detailsIntent.putExtra("responseString", viewModel.getTaPhotoResult().getValue().get(id - 2).getResponseString());
-//                    startActivity(detailsIntent);
-//                } else {
-//                    Toast.makeText(this, "No details available!", Toast.LENGTH_SHORT).show();
-//                }
-//
-//            } catch (NumberFormatException e) {
-//                Log.i(">>MainActivity", "onButtonClick: " + "Error parsing button ID");
-//            }
-//        } else {
-//            Log.i(">>MainActivity", "onButtonClick: " + "Error parsing button ID");
-//        }
-//
-//    }
-
-
-    private void makeSearchRequest(String longitude, String latitude, String street, String suggestionId) throws UnsupportedEncodingException {
-        // Uses ChatGpt coordinates and street address to find location with lowest distance from target
-        Intent intentTA = new Intent(getBaseContext(), APIRequestService.class);
-
-        // Making endpoint for search from coordinates
-        String encodedAddress = encodeAddress(street);
-        String searchEP = TRIP_ADVISOR_LOCATION_ENDPOINT + "/" + "nearby_search?latLong=" + coordEncoder(latitude + ", " + longitude) + "&key="
-                + tripAdvisorKey + "&address=" + encodedAddress + "&language=en";
-        Log.i(">>MainActivity", "makeSearchRequest: " + searchEP);
-        intentTA.putExtra("callerID", ID);
-        intentTA.putExtra("apiUrl", searchEP);
-        intentTA.putExtra("apiType", "TripAdvisor_Search");
-        intentTA.putExtra("suggestionId", suggestionId.toString());
-
-//         Make request
-        startService(intentTA);
-    }
-
-
     private BroadcastReceiver apiReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -383,11 +310,11 @@ public class MainActivity extends AppCompatActivity {
                             if (data.has("images")) {
                                 JSONObject images = data.getJSONObject("images");
                                 if (images.has("medium")) {
-//                                    loadIndicator.setVisibility(View.INVISIBLE);
+                                    loadIndicator.setVisibility(View.INVISIBLE);
                                     JSONObject mediumImage = images.getJSONObject("medium");
                                     String imageUrl = mediumImage.getString("url");
                                     viewModel.updatePhotoItemImgUrl(Integer.parseInt(suggestionId), imageUrl);
-
+                                    viewModel.updateImgUrlToSuggestion(Integer.parseInt(suggestionId), imageUrl);
 
                                     Log.i(">>Receiver", "Image URL: " + imageUrl);
                                 }
@@ -479,10 +406,10 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void createSuggestionListCard(){
+    private void createSuggestionListCard(SuggestionList suggestionList) {
         CardView cv = findViewById(R.id.cvSuggestionList);
-        ArrayList suggestionItems = new ArrayList(viewModel.getSuggestionList().getValue().getSuggestions());
-        ArrayList taPhotoItems = new ArrayList(viewModel.getTaPhotoResult().getValue());
+        ArrayList suggestionItems = new ArrayList(suggestionList.getSuggestions());
+//        ArrayList taPhotoItems = new ArrayList(viewModel.getTaPhotoResult().getValue());
         Log.i(">>MainActivity", "createSuggestionListCard: " + suggestionItems.size());
         SuggestionListAdapter.OnDetailsListener detailsListener = new SuggestionListAdapter.OnDetailsListener() {
             @Override
@@ -496,7 +423,7 @@ public class MainActivity extends AppCompatActivity {
                     detailsIntent.putExtra("responseString", viewModel. getTaPhotoResult(). getValue() .get(position).getResponseString());
                     startActivity(detailsIntent);
                 } else {
-//                    Toast.makeText(this, "No details available!", Toast. LENGTH_SHORT). show();
+                    Toast.makeText(MainActivity.this, "No details available!", Toast.LENGTH_SHORT).show();
                     Log.i(">>MainActivity", "onDetails: " + "No details available!");
                 }
             }
@@ -531,4 +458,40 @@ public class MainActivity extends AppCompatActivity {
 
         return totalHeight;
     }
+
+    private void makeTASearchApiCalls(SuggestionList suggestionList) {
+        viewModel.getTaSearchResult().getValue().getSearchItems().clear();
+        viewModel.resetPhotoResult();
+        for (int i = 0; i < suggestionList.getSuggestions().size(); i++) {
+            Suggestion item = suggestionList.getSuggestions().get(i);
+            String longitude = item.getLongitude();
+            String latitude = item.getLatitude();
+            String street = item.getStreetAddress();
+            String suggestionId = String.valueOf(i);
+            try {
+                makeSearchRequest(longitude, latitude, street, suggestionId);
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void makeSearchRequest(String longitude, String latitude, String street, String suggestionId) throws UnsupportedEncodingException {
+        // Uses ChatGpt coordinates and street address to find location with lowest distance from target
+        Intent intentTA = new Intent(getBaseContext(), APIRequestService.class);
+
+        // Making endpoint for search from coordinates
+        String encodedAddress = encodeAddress(street);
+        String searchEP = TRIP_ADVISOR_LOCATION_ENDPOINT + "/" + "nearby_search?latLong=" + coordEncoder(latitude + ", " + longitude) + "&key="
+                + tripAdvisorKey + "&address=" + encodedAddress + "&language=en";
+        Log.i(">>MainActivity", "makeSearchRequest: " + searchEP);
+        intentTA.putExtra("callerID", ID);
+        intentTA.putExtra("apiUrl", searchEP);
+        intentTA.putExtra("apiType", "TripAdvisor_Search");
+        intentTA.putExtra("suggestionId", suggestionId.toString());
+
+//         Make request
+        startService(intentTA);
+    }
+
 }

@@ -5,7 +5,7 @@ data class SuggestionList(
 )
 
 data class Suggestion(
-    var img:String,
+    var imgUrl: String,
     val name: String,
     val address: String,
     var streetAddress: String,
@@ -17,9 +17,7 @@ data class Suggestion(
     var isChecked: Boolean = false
 
 ){
-    fun setImgUrl(imgUrl: String) {
-        this.img = imgUrl
-    }
+
     fun getChecked(): Boolean {
         return isChecked
     }

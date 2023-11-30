@@ -278,15 +278,17 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
                 android:orientation="vertical"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/cvItinerary">
 
                 <Button
+                    android:id="@+id/btnSaveToPhone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/btnSaveToPhone"
                     android:enabled="false"
                     android:text="Save to Phone" />
 
@@ -301,8 +303,8 @@
                     android:id="@+id/btnSendItineraryEmail"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:enabled="false"
                     android:layout_gravity="start"
+                    android:enabled="false"
                     android:text="Send Itinerary to Email" />
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>

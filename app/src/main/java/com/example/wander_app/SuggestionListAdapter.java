@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
+import com.bumptech.glide.Glide;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -37,13 +38,16 @@ public class SuggestionListAdapter  extends ArrayAdapter<Suggestion> {
         TextView locationName = convertView.findViewById(R.id.tvLocationName);
         TextView description = convertView.findViewById(R.id.tvDescription);
         ImageView pic = convertView.findViewById(R.id.ivLocationPicture);
-        String imageUrl = item.getImg();
-
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            Picasso.get().load(imageUrl).into(pic);
-        } else {
-            pic.setImageResource(R.drawable.default_picture);
-        }
+        String imageUrl = item.getImgUrl();
+        Context cont = getContext();
+        Glide.with(cont).load(imageUrl).placeholder(R.drawable.default_picture).into(pic);
+//        if (imageUrl != null && !imageUrl.isEmpty()) {
+//            Log.i(">>SuggestionListAdapter", "getView: Updating img url to the list view:" + imageUrl);
+//            Picasso.get().load(imageUrl).into(pic);
+//        } else {
+//            Log.i(">>SuggestionListAdapter", "getView: Updating default img url to the list view");
+//            pic.setImageResource(R.drawable.default_picture);
+//        }
         locationName.setText(item.getName());
         description.setText(item.getDescription());
 
