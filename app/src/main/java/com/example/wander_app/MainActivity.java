@@ -2,6 +2,7 @@ package com.example.wander_app;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.room.Room;
@@ -22,10 +23,12 @@ import android.os.Bundle;
 import android.Manifest;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -60,9 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private String nameLocation = "";
     private String addressLocation = "";
 
-    private ImageView[] imageViews;
-    private TextView[] textViews;
-    private ProgressBar loadIndicator;
+//    private ProgressBar loadIndicator;
 
     private final String TRIP_ADVISOR_LOCATION_ENDPOINT = "https://api.content.tripadvisor.com/api/v1/location";
 
@@ -86,57 +87,11 @@ public class MainActivity extends AppCompatActivity {
 
 
         viewModel = new ViewModelProvider(this).get(MainViewModel.class);
-        loadIndicator = findViewById(R.id.loadingBar);
-
-
-
-        imageViews = new ImageView[]{
-                (binding.ivList01),
-                (binding.ivList02),
-                (binding.ivList03),
-                (binding.ivList04),
-                (binding.ivList05),
-                (binding.ivList06)
-        };
-
-        textViews = new TextView[]{
-                (binding.tvList01Name),
-                (binding.tvList02Name),
-                (binding.tvList03Name),
-                (binding.tvList04Name),
-                (binding.tvList05Name),
-                (binding.tvList06Name)
-        };
-
-        CheckBox[] checkboxes = new CheckBox[]{
-                (binding.cbList01),
-                (binding.cbList02),
-                (binding.cbList03),
-                (binding.cbList04),
-                (binding.cbList05),
-                (binding.cbList06)
-        };
-
-
-        Button[] detailButtons = new Button[]{
-                binding.btList01,
-                binding.btList02,
-                binding.btList03,
-                binding.btList04,
-                binding.btList05,
-                binding.btList06
-        };
-
-        for (Button button : detailButtons) {
-            button.setOnClickListener(v -> {
-                // Handle button click
-                onDetailButtonClick(v);
-            });
-        }
+//        loadIndicator = findViewById(R.id.loadingBar);
 
 
         binding.btnSendRequest.setOnClickListener(v -> {
-            loadIndicator.setVisibility(View.VISIBLE);
+//            loadIndicator.setVisibility(View.VISIBLE);
             viewModel.updateMessage(binding.etLocation.getText().toString());
             String preferenceText = binding.etPreference.getText().toString();
             if (!preferenceText.isEmpty()) {
@@ -156,8 +111,10 @@ public class MainActivity extends AppCompatActivity {
 
         binding.btAddToItinerary.setOnClickListener(v -> {
             List<ItineraryItem> items = new ArrayList<>();
-            for (int i = 0; i < 6; i++) {
-                if (checkboxes[i].isChecked()) {
+            ArrayAdapter<Suggestion> adapter = (ArrayAdapter<Suggestion>) binding.lvSuggestionList.getAdapter();
+            for (int i = 0; i < adapter.getCount(); i++) {
+                Suggestion item = adapter.getItem(i);
+                if ((item != null) && item.isChecked()) {
                     Integer suggestionId = i;
                     String locationId = viewModel.getTaPhotoResult().getValue().get(i).getLocationId();
                     String responseString = viewModel.getTaPhotoResult().getValue().get(i).getResponseString();
@@ -182,34 +139,20 @@ public class MainActivity extends AppCompatActivity {
             saveItineraryItems(db);
         });
 
-//        viewModel.getResponse().observe(this, response -> {
-//            Log.i("MainActivity", "onCreate: " + response);
-//        });
+        viewModel.getResponse().observe(this, response -> {
+            Log.i("MainActivity", "onCreate: " + response);
+        });
 
         viewModel.getSuggestionList().observe(this, suggestionList -> {
             Log.i("MainActivity", "onCreate: " + suggestionList);
-            binding.tvList01Description.setText(suggestionList.getSuggestions().get(0).getDescription());
-            binding.tvList01Name.setText(suggestionList.getSuggestions().get(0).getName());
-            binding.tvList02Description.setText(suggestionList.getSuggestions().get(1).getDescription());
-            binding.tvList02Name.setText(suggestionList.getSuggestions().get(1).getName());
-            binding.tvList03Description.setText(suggestionList.getSuggestions().get(2).getDescription());
-            binding.tvList03Name.setText(suggestionList.getSuggestions().get(2).getName());
-            binding.tvList04Description.setText(suggestionList.getSuggestions().get(3).getDescription());
-            binding.tvList04Name.setText(suggestionList.getSuggestions().get(3).getName());
-            binding.tvList05Description.setText(suggestionList.getSuggestions().get(4).getDescription());
-            binding.tvList05Name.setText(suggestionList.getSuggestions().get(4).getName());
-            binding.tvList06Description.setText(suggestionList.getSuggestions().get(5).getDescription());
-            binding.tvList06Name.setText(suggestionList.getSuggestions().get(5).getName());
-            binding.llSuggestions.setVisibility(View.VISIBLE);
-
+            createSuggestionListCard();
 //            reset image and search results
             viewModel.getTaSearchResult().getValue().getSearchItems().clear();
-            for (ImageView imageView : imageViews) {
-                imageView.setImageResource(R.drawable.default_picture);
-            }
+
             //make search request for each suggestion
             for (int i = 0; i < suggestionList.getSuggestions().size(); i++) {
                 try {
+                    Log.i(">>MainActivity", "Preparing to make search TA api call" );
                     String streetAddress = suggestionList.getSuggestions().get(i).getStreetAddress();
                     String latitude = suggestionList.getSuggestions().get(i).getLatitude();
                     String longitude = suggestionList.getSuggestions().get(i).getLongitude();
@@ -222,15 +165,15 @@ public class MainActivity extends AppCompatActivity {
 
 
         viewModel.getTaSearchResult().observe(this, taSearchResult -> {
-            Log.i(">>MainActivity", "TA Search Result updated");
+            Log.i(">>MainActivity", "TA Search Result updated. Size: " + taSearchResult.getSearchItems().size());
             for (TASearchItem item : taSearchResult.getSearchItems()) {
                 Log.i(">>MainActivity", "TA Search Item: " + item.toString());
             }
+            // Call TA Photo Endpoint
             if (taSearchResult.getSearchItems().size() == 6) {
                 for (int i = 0; i < taSearchResult.getSearchItems().size(); i++) {
                     TASearchItem item = taSearchResult.getSearchItems().get(i);
                     String locationId = item.getLocationId();
-//                  taPhotoItems[i].setLocationId(locationId);
                     String taPicEndpoint = createTaEndpoint("photos", locationId);
                     Log.i(">>MainActivity", "Call TA Pic Endpoint: " + taPicEndpoint);
                     Intent intentTA = new Intent(getBaseContext(), APIRequestService.class);
@@ -244,6 +187,10 @@ public class MainActivity extends AppCompatActivity {
         });
 
         viewModel.getItinerary().observe(this, itineraryItems -> {
+            if (itineraryItems.size() > 0) {
+                binding.btnSaveToPhone.setEnabled(true);
+                binding.btnSendItineraryEmail.setEnabled(true);
+            }
             createItineraryCard();
         });
 
@@ -312,37 +259,37 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void onDetailButtonClick(View v) {
-        String btnId = String.valueOf(v.getId());
-
-        if (btnId.length() >= 1) {
-            String lastChar = btnId.substring(btnId.length() - 1);
-            try {
-                int id = Integer.parseInt(lastChar);
-                Log.i(">>MainActivity", "Clicked Button ID: " + id);
-                // Open details activity
-                Intent detailsIntent = new Intent(MainActivity.this, DetailsActivity.class);
-                String tempId = viewModel.getTaPhotoResult().getValue().get(id - 2).getLocationId();
-                String tempResp = viewModel.getTaPhotoResult().getValue().get(id - 2).getResponseString();
-                Log.i(">>MainActivity", "onButtonClick: location_id " + viewModel.getTaPhotoResult().getValue().get(id - 2).getLocationId());
-                Log.i(">>MainActivity", "onButtonClick: response_string " + viewModel.getTaPhotoResult().getValue().get(id - 2).getResponseString());
-
-                if (!tempId.isEmpty()) {
-                    detailsIntent.putExtra("locationId", viewModel.getTaPhotoResult().getValue().get(id - 2).getLocationId());
-                    detailsIntent.putExtra("responseString", viewModel.getTaPhotoResult().getValue().get(id - 2).getResponseString());
-                    startActivity(detailsIntent);
-                } else {
-                    Toast.makeText(this, "No details available!", Toast.LENGTH_SHORT).show();
-                }
-
-            } catch (NumberFormatException e) {
-                Log.i(">>MainActivity", "onButtonClick: " + "Error parsing button ID");
-            }
-        } else {
-            Log.i(">>MainActivity", "onButtonClick: " + "Error parsing button ID");
-        }
-
-    }
+//    private void onDetailButtonClick(View v) {
+//        String btnId = String.valueOf(v.getId());
+//
+//        if (btnId.length() >= 1) {
+//            String lastChar = btnId.substring(btnId.length() - 1);
+//            try {
+//                int id = Integer.parseInt(lastChar);
+//                Log.i(">>MainActivity", "Clicked Button ID: " + id);
+//                // Open details activity
+//                Intent detailsIntent = new Intent(MainActivity.this, DetailsActivity.class);
+//                String tempId = viewModel.getTaPhotoResult().getValue().get(id - 2).getLocationId();
+//                String tempResp = viewModel.getTaPhotoResult().getValue().get(id - 2).getResponseString();
+//                Log.i(">>MainActivity", "onButtonClick: location_id " + viewModel.getTaPhotoResult().getValue().get(id - 2).getLocationId());
+//                Log.i(">>MainActivity", "onButtonClick: response_string " + viewModel.getTaPhotoResult().getValue().get(id - 2).getResponseString());
+//
+//                if (!tempId.isEmpty()) {
+//                    detailsIntent.putExtra("locationId", viewModel.getTaPhotoResult().getValue().get(id - 2).getLocationId());
+//                    detailsIntent.putExtra("responseString", viewModel.getTaPhotoResult().getValue().get(id - 2).getResponseString());
+//                    startActivity(detailsIntent);
+//                } else {
+//                    Toast.makeText(this, "No details available!", Toast.LENGTH_SHORT).show();
+//                }
+//
+//            } catch (NumberFormatException e) {
+//                Log.i(">>MainActivity", "onButtonClick: " + "Error parsing button ID");
+//            }
+//        } else {
+//            Log.i(">>MainActivity", "onButtonClick: " + "Error parsing button ID");
+//        }
+//
+//    }
 
 
     private void makeSearchRequest(String longitude, String latitude, String street, String suggestionId) throws UnsupportedEncodingException {
@@ -368,7 +315,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             JSONObject response = null;
-            Log.v(">>Receiver", "TA Message Received!");
+            Log.i(">>Receiver", "TA Message Received!");
             if (intent != null && intent.getStringExtra("callerID").equals(ID)) {
                 try {
                     response = new JSONObject(intent.getStringExtra("jsonObject"));
@@ -383,11 +330,11 @@ public class MainActivity extends AppCompatActivity {
                             if (dataArray.length() > 0) {
                                 JSONObject data = null;
                                 // New logic to find the matching name
-                                String textViewText = textViews[Integer.parseInt(suggestionId)].getText().toString();
+                                String locationName = viewModel.getSuggestionList().getValue().getSuggestions().get(Integer.parseInt(suggestionId)).getName();
                                 for (int i = 0; i < dataArray.length(); i++) {
                                     JSONObject tempObj = dataArray.getJSONObject(i);
                                     String name = tempObj.getString("name");
-                                    if (tempObj.has("name") && (name.equals(textViewText) || name.contains(textViewText) || textViewText.contains(name))) {
+                                    if (tempObj.has("name") && (name.equals(locationName) || name.contains(locationName) || locationName.contains(name))) {
                                         Log.i(">>Receiver", "Found matching name: " + tempObj.getString("name"));
                                         data = tempObj;
                                         break;
@@ -436,12 +383,13 @@ public class MainActivity extends AppCompatActivity {
                             if (data.has("images")) {
                                 JSONObject images = data.getJSONObject("images");
                                 if (images.has("medium")) {
-                                    loadIndicator.setVisibility(View.INVISIBLE);
+//                                    loadIndicator.setVisibility(View.INVISIBLE);
                                     JSONObject mediumImage = images.getJSONObject("medium");
                                     String imageUrl = mediumImage.getString("url");
                                     viewModel.updatePhotoItemImgUrl(Integer.parseInt(suggestionId), imageUrl);
+
+
                                     Log.i(">>Receiver", "Image URL: " + imageUrl);
-                                    Glide.with(getBaseContext()).load(imageUrl).into(imageViews[Integer.parseInt(suggestionId)]);
                                 }
                             }
                         }
@@ -525,14 +473,44 @@ public class MainActivity extends AppCompatActivity {
         ListView listView = findViewById(R.id.lvItineraryList);
         listView.setAdapter(listAdapter);
         Integer listViewHeight = getTotalHeightOfListView(listView);
-        Log.i(">>MainActivity", "createItineraryCard: " + listViewHeight);
         listView.getLayoutParams().height = listViewHeight;
         cv.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
 
 
     }
 
+    private void createSuggestionListCard(){
+        CardView cv = findViewById(R.id.cvSuggestionList);
+        ArrayList suggestionItems = new ArrayList(viewModel.getSuggestionList().getValue().getSuggestions());
+        ArrayList taPhotoItems = new ArrayList(viewModel.getTaPhotoResult().getValue());
+        Log.i(">>MainActivity", "createSuggestionListCard: " + suggestionItems.size());
+        SuggestionListAdapter.OnDetailsListener detailsListener = new SuggestionListAdapter.OnDetailsListener() {
+            @Override
+            public void onDetails(int position) {
+                Intent detailsIntent = new Intent(MainActivity.this, DetailsActivity.class);
+                String tempId = viewModel.getTaPhotoResult().getValue().get(position).getLocationId();
+                String tempResp = viewModel.getTaPhotoResult().getValue().get(position).getResponseString();
+
+                if (!tempId. isEmpty()) {
+                    detailsIntent. putExtra("locationId", viewModel.getTaPhotoResult().getValue().get(position) .getLocationId());
+                    detailsIntent.putExtra("responseString", viewModel. getTaPhotoResult(). getValue() .get(position).getResponseString());
+                    startActivity(detailsIntent);
+                } else {
+//                    Toast.makeText(this, "No details available!", Toast. LENGTH_SHORT). show();
+                    Log.i(">>MainActivity", "onDetails: " + "No details available!");
+                }
+            }
+        };
+        SuggestionListAdapter listAdapter = new SuggestionListAdapter(this, suggestionItems, detailsListener);
+        ListView listView = findViewById(R.id.lvSuggestionList);
+        listView.setAdapter(listAdapter);
+        Integer listViewHeight = getTotalHeightOfListView(listView);
+        listView.getLayoutParams().height = listViewHeight;
+        cv.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+    }
+
     public static int getTotalHeightOfListView(ListView listView) {
+        Log.i(">>MainActivity", "getTotalHeightOfListView: ");
         ListAdapter adapter = listView.getAdapter();
         if (adapter == null) {
             return 0;

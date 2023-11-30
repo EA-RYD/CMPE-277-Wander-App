@@ -9,15 +9,15 @@ import com.tutorial.chatgptapp.ChatGptRepository
 import kotlinx.coroutines.launch
 
 
-class MainViewModel() : ViewModel() {
+class MainViewModel : ViewModel() {
 
     val gpt = ChatGptRepository()
     val response = MutableLiveData<String>()
-    val message = MutableLiveData<String>()
+//    val message = MutableLiveData<String>()
     val location = MutableLiveData<String>()
     val suggestionList = MutableLiveData<SuggestionList>()
     val taSearchResult = MutableLiveData<TASearchResult>()
-    val loadedSuggestionList = MutableLiveData<MutableList<Suggestion>>()
+//    val loadedSuggestionList = MutableLiveData<MutableList<Suggestion>>()
 
     init {
         // Initialize with an empty TASearchResult
@@ -69,7 +69,7 @@ class MainViewModel() : ViewModel() {
         }
     }
 
-    public fun updateMessage(newMessage: String) {
+    fun updateMessage(newMessage: String) {
         gpt.addMessage(newMessage)
     }
 
@@ -110,41 +110,43 @@ class MainViewModel() : ViewModel() {
     }
 
 
-    fun transformItineraryToSuggestionList(itineraryItems: List<ItineraryItem>) {
-        val suggestions = mutableListOf<Suggestion>()
-        val reversedItineraryItems = itineraryItems.reversed()
-        for (item in reversedItineraryItems) {
-            suggestions.add(
-                Suggestion(
-                    item.imgUrl,
-                    item.locationName,
-                    "",
-                    "",
-                    "",
-                    "",
-                    item.description,
-                    item.locationId,
-                    item.responseString
-                )
-            )
-        }
-        loadedSuggestionList.postValue(suggestions.toMutableList())
-    }
-
-    fun transformItineraryToTaPhotoResult(itineraryItems: MutableList<ItineraryItem>) {
-        val taPhotoItems = mutableListOf<TAPhotoItem>()
-        val reversedItineraryItems = itineraryItems.reversed()
-        for (item in reversedItineraryItems) {
-            taPhotoItems.add(
-                TAPhotoItem(
-                    item.locationId,
-                    item.responseString,
-                    item.imgUrl
-                )
-            )
-        }
-        taPhotoResult.postValue(taPhotoItems.toMutableList())
-    }
+//    fun transformItineraryToSuggestionList(itineraryItems: List<ItineraryItem>) {
+//        val suggestions = mutableListOf<Suggestion>()
+//        val reversedItineraryItems = itineraryItems.reversed()
+//        for (item in reversedItineraryItems) {
+//            suggestions.add(
+//                Suggestion(
+//                    item.imgUrl,
+//                    item.locationName,
+//                    "",
+//                    "",
+//                    "",
+//                    "",
+//                    item.description,
+//                    item.locationId,
+//                    item.responseString
+//                )
+//            )
+//        }
+//        loadedSuggestionList.postValue(suggestions.toMutableList())
+//    }
+//
+//
+//
+//    fun transformItineraryToTaPhotoResult(itineraryItems: MutableList<ItineraryItem>) {
+//        val taPhotoItems = mutableListOf<TAPhotoItem>()
+//        val reversedItineraryItems = itineraryItems.reversed()
+//        for (item in reversedItineraryItems) {
+//            taPhotoItems.add(
+//                TAPhotoItem(
+//                    item.locationId,
+//                    item.responseString,
+//                    item.imgUrl
+//                )
+//            )
+//        }
+//        taPhotoResult.postValue(taPhotoItems.toMutableList())
+//    }
 
     fun addItemsToItinerary(newItems: List<ItineraryItem>) {
         val currentList = itinerary.value ?: mutableListOf()
@@ -163,6 +165,11 @@ class MainViewModel() : ViewModel() {
         currentList.removeAt(id)
         itinerary.value = currentList
     }
+
+   fun updateImgUrlToSuggestion(id: Int, imgUrl:String) {
+       val item = suggestionList.value?.suggestions?.get(id)
+       item?.setImgUrl(imgUrl)
+   }
 
 }
 
