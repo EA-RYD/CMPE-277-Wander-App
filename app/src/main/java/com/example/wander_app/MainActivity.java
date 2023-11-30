@@ -29,6 +29,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ImageView;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -79,7 +80,8 @@ public class MainActivity extends AppCompatActivity {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         registerReceiver(apiReceiver, new IntentFilter(
                 APIRequestService.Broadcast_id));
-
+//        boolean result = this.deleteDatabase("itinerary");
+//        Log.i(">>MainActivity", "onCreate: Delete Database " + result);
         Database db = Room.databaseBuilder(
                 this,
                 Database.class,
@@ -154,7 +156,8 @@ public class MainActivity extends AppCompatActivity {
                 String imageUrl = viewModel.getTaPhotoResult().getValue().get(i).getImgUrl();
                 String locationName = viewModel.getSuggestionList().getValue().getSuggestions().get(i).getName();
                 String description = viewModel.getSuggestionList().getValue().getSuggestions().get(i).getDescription();
-                ItineraryItem itineraryItem = new ItineraryItem(suggestionId, locationId, responseString, locationName, description, imageUrl, 0);
+                String address = viewModel.getSuggestionList().getValue().getSuggestions().get(i).getAddress();
+                ItineraryItem itineraryItem = new ItineraryItem(suggestionId, locationId, responseString, locationName, description, imageUrl, address,0);
                 items.add(itineraryItem);
             }
 
@@ -533,9 +536,33 @@ public class MainActivity extends AppCompatActivity {
         ItineraryListAdapter listAdapter = new ItineraryListAdapter(this, itineraryItems);
         ListView listView = findViewById(R.id.lvItineraryList);
         listView.setAdapter(listAdapter);
+        Integer listViewHeight = getTotalHeightOfListView(listView);
+        Log.i(">>MainActivity", "createItineraryCard: " + listViewHeight);
+        listView.getLayoutParams().height = listViewHeight;
         cv.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
 
 
     }
 
+    public static int getTotalHeightOfListView(ListView listView) {
+        ListAdapter adapter = listView.getAdapter();
+        if (adapter == null) {
+            return 0;
+        }
+
+        int totalHeight = 0;
+        for (int i = 0; i < adapter.getCount(); i++) {
+            View listItem = adapter.getView(i, null, listView);
+            listItem.measure(
+                    View.MeasureSpec.makeMeasureSpec(listView.getWidth(), View.MeasureSpec.AT_MOST),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            );
+            totalHeight += listItem.getMeasuredHeight();
+        }
+
+        // Add the height of the dividers
+        totalHeight += (listView.getDividerHeight() * (adapter.getCount() - 1));
+
+        return totalHeight;
+    }
 }

@@ -38,6 +38,13 @@
                 android:layout_marginLeft="5dp"
                 android:text="test description" />
 
+            <TextView
+                android:id="@+id/tvAddress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:text="test address" />
+
         </LinearLayout>
     </LinearLayout>
 

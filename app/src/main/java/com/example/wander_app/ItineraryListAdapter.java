@@ -34,6 +34,7 @@ public class ItineraryListAdapter extends ArrayAdapter<ItineraryItem> {
         ImageView pic = convertView.findViewById(R.id.ivLocationPicture);
         TextView name = convertView.findViewById(R.id.tvLocationName);
         TextView description = convertView.findViewById(R.id.tvDescription);
+        TextView address = convertView.findViewById(R.id.tvAddress);
         String imageUrl = item.getImgUrl();
         if (imageUrl != null && !imageUrl.isEmpty()) {
             Picasso.get().load(imageUrl).into(pic);
@@ -42,6 +43,7 @@ public class ItineraryListAdapter extends ArrayAdapter<ItineraryItem> {
         }
         name.setText(item.getLocationName());
         description.setText(item.getDescription());
+        address.setText(item.getAddress());
 
         return convertView;
     }
