@@ -12,6 +12,7 @@ data class ItineraryItem (
     val locationName: String,
     val description: String,
     val imgUrl: String,
+    val address: String,
     @PrimaryKey(autoGenerate = true) val id: Int = 0
 ) {
     override fun toString(): String {
