@@ -565,4 +565,8 @@ public class MainActivity extends AppCompatActivity {
 
         return totalHeight;
     }
+
+    public void onEmailButtonClick(View view) {
+
+    }
 }

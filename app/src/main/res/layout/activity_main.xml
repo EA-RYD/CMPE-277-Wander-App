@@ -606,7 +606,7 @@
 
                 <EditText
                     android:id="@+id/etEmail"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="foo@gmail.com"
                     android:gravity="center"
@@ -616,7 +616,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="Send Itinerary to Email" />
+                    android:text="Send Itinerary to Email"
+                    android:onClick="onEmailButtonClick"/>
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 

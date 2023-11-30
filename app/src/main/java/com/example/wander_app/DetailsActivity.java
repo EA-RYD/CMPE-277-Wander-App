@@ -44,13 +44,10 @@ public class DetailsActivity extends AppCompatActivity {
     private String idLocation;
     private String nameLocation = "test";
     private String addressLocation = "test";
-
     private final String TRIP_ADVISOR_LOCATION_ENDPOINT = "https://api.content.tripadvisor.com/api/v1/location";
-
     // Used for fragments
     private ViewPager vp;
     private TabLayout tl;
-
     // Information needed for UI
     private ArrayList<VacationPicture> pictureGallery = new ArrayList<>();
     private JSONArray hours;
