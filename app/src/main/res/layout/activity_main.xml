@@ -154,375 +154,52 @@
                 app:layout_constraintStart_toEndOf="@+id/btnSendRequest"
                 app:layout_constraintTop_toTopOf="@+id/btnSendRequest" />
 
-            <!--            <ScrollView-->
-            <!--                android:id="@+id/svSuggestions"-->
-            <!--                android:layout_width="384dp"-->
-            <!--                android:layout_height="493dp"-->
-            <!--                android:layout_marginTop="20dp"-->
-            <!--                android:visibility="invisible"-->
-            <!--                app:layout_constraintEnd_toEndOf="parent"-->
-            <!--                app:layout_constraintHorizontal_bias="0.502"-->
-            <!--                app:layout_constraintStart_toStartOf="parent"-->
-            <!--                app:layout_constraintTop_toBottomOf="@+id/btnSendRequest">-->
 
-            <LinearLayout
-                android:id="@+id/llSuggestions"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
-                android:orientation="vertical"
-                android:visibility="invisible"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/btnSendRequest">
 
-                <LinearLayout
-                    android:id="@+id/row01"
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cvSuggestionList"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:orientation="horizontal">
-
-                    <CheckBox
-                        android:id="@+id/cbList01"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="center_vertical" />
-
-                    <ImageView
-                        android:id="@+id/ivList01"
-                        android:layout_width="112dp"
-                        android:layout_height="93dp"
-                        android:layout_marginStart="4dp"
-                        android:layout_marginTop="8dp"
-                        android:src="@drawable/default_picture" />
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginRight="8dp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/btnSendRequest">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:padding="4dp">
 
                         <TextView
-                            android:id="@+id/tvList01Name"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="8dp"
-                            android:text="****"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvList01Description"
+                            android:id="@+id/tvSuggestionListTile"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="8dp"
-                            android:layout_marginEnd="16dp"
-                            android:text="****"
-                            app:layout_constraintEnd_toEndOf="parent" />
+                            android:layout_marginTop="4dp"
+                            android:text="Suggestions from ChatGPT"
+                            android:textSize="24sp" />
 
-                        <Button
-                            android:id="@+id/btList01"
-                            style="@style/WanderAppTheme.Button.GrayOutline"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="end"
-                            android:text="@string/bt_text_detail" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/row02"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:orientation="horizontal">
-
-                    <CheckBox
-                        android:id="@+id/cbList02"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="center_vertical" />
-
-                    <ImageView
-                        android:id="@+id/ivList02"
-                        android:layout_width="112dp"
-                        android:layout_height="93dp"
-                        android:layout_marginStart="4dp"
-                        android:layout_marginTop="8dp"
-                        android:src="@drawable/default_picture" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/tvList02Name"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="8dp"
-                            android:text="****"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvList02Description"
+                        <ListView
+                            android:id="@+id/lvSuggestionList"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="8dp"
-                            android:layout_marginEnd="16dp"
-                            android:text="****"
-                            app:layout_constraintEnd_toEndOf="parent" />
+                            tools:listitem="@layout/itinerary_item" />
 
                         <Button
-                            android:id="@+id/btList02"
-                            style="@style/WanderAppTheme.Button.GrayOutline"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="end"
-                            android:text="@string/bt_text_detail" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/row03"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:orientation="horizontal">
-
-                    <CheckBox
-                        android:id="@+id/cbList03"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="center_vertical" />
-
-                    <ImageView
-                        android:id="@+id/ivList03"
-                        android:layout_width="112dp"
-                        android:layout_height="93dp"
-                        android:layout_marginStart="4dp"
-                        android:layout_marginTop="8dp"
-                        android:src="@drawable/default_picture" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/tvList03Name"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="8dp"
-                            android:text="****"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvList03Description"
+                            android:id="@+id/btAddToItinerary"
+                            style="@style/WanderAppTheme.Button"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="8dp"
-                            android:layout_marginEnd="16dp"
-                            android:text="****"
-                            app:layout_constraintEnd_toEndOf="parent" />
-
-                        <Button
-                            android:id="@+id/btList03"
-                            style="@style/WanderAppTheme.Button.GrayOutline"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="end"
-                            android:text="@string/bt_text_detail" />
+                            android:text="Add to Itinerary" />
                     </LinearLayout>
-                </LinearLayout>
+                </androidx.cardview.widget.CardView>
 
-                <LinearLayout
-                    android:id="@+id/row04"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:orientation="horizontal">
 
-                    <CheckBox
-                        android:id="@+id/cbList04"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="center_vertical" />
 
-                    <ImageView
-                        android:id="@+id/ivList04"
-                        android:layout_width="112dp"
-                        android:layout_height="93dp"
-                        android:layout_marginStart="4dp"
-                        android:layout_marginTop="8dp"
-                        android:src="@drawable/default_picture" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
 
-                        <TextView
-                            android:id="@+id/tvList04Name"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="8dp"
-                            android:text="****"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvList04Description"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="8dp"
-                            android:layout_marginEnd="16dp"
-                            android:text="****"
-                            app:layout_constraintEnd_toEndOf="parent" />
-
-                        <Button
-                            android:id="@+id/btList04"
-                            style="@style/WanderAppTheme.Button.GrayOutline"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="end"
-                            android:text="@string/bt_text_detail" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/row05"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:orientation="horizontal">
-
-                    <CheckBox
-                        android:id="@+id/cbList05"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="center_vertical" />
-
-                    <ImageView
-                        android:id="@+id/ivList05"
-                        android:layout_width="112dp"
-                        android:layout_height="93dp"
-                        android:layout_marginStart="4dp"
-                        android:layout_marginTop="8dp"
-                        android:src="@drawable/default_picture" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/tvList05Name"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="8dp"
-                            android:text="****"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvList05Description"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="8dp"
-                            android:layout_marginEnd="16dp"
-                            android:text="****"
-                            app:layout_constraintEnd_toEndOf="parent" />
-
-                        <Button
-                            android:id="@+id/btList05"
-                            style="@style/WanderAppTheme.Button.GrayOutline"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="end"
-                            android:text="@string/bt_text_detail" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/row06"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:orientation="horizontal">
-
-                    <CheckBox
-                        android:id="@+id/cbList06"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="center_vertical" />
-
-                    <ImageView
-                        android:id="@+id/ivList06"
-                        android:layout_width="112dp"
-                        android:layout_height="93dp"
-                        android:layout_marginStart="4dp"
-                        android:layout_marginTop="8dp"
-                        android:src="@drawable/default_picture" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/tvList06Name"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="8dp"
-                            android:text="****"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvList06Description"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="8dp"
-                            android:layout_marginEnd="16dp"
-                            android:text="****"
-                            app:layout_constraintEnd_toEndOf="parent" />
-
-                        <Button
-                            android:id="@+id/btList06"
-                            style="@style/WanderAppTheme.Button.GrayOutline"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="end"
-                            android:text="@string/bt_text_detail" />
-
-                    </LinearLayout>
-                </LinearLayout>
-
-                <Button
-                    android:id="@+id/btAddToItinerary"
-                    style="@style/WanderAppTheme.Button"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Add to Itinerary" />
-
-            </LinearLayout>
-            <!--            </ScrollView>-->
 
 
             <ProgressBar
@@ -571,7 +248,7 @@
                 android:layout_marginRight="8dp"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/llSuggestions">
+                app:layout_constraintTop_toBottomOf="@id/cvSuggestionList">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -590,7 +267,7 @@
                     <ListView
                         android:id="@+id/lvItineraryList"
                         android:layout_width="match_parent"
-                        android:layout_height="300dp"
+                        android:layout_height="wrap_content"
                         tools:listitem="@layout/itinerary_item" />
 
 
@@ -601,15 +278,18 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
                 android:orientation="vertical"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/cvItinerary">
 
                 <Button
+                    android:id="@+id/btnSaveToPhone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/btnSaveToPhone"
+                    android:enabled="false"
                     android:text="Save to Phone" />
 
                 <EditText
@@ -620,9 +300,11 @@
                     android:inputType="textEmailAddress" />
 
                 <Button
+                    android:id="@+id/btnSendItineraryEmail"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="start"
+                    android:enabled="false"
                     android:text="Send Itinerary to Email" />
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>

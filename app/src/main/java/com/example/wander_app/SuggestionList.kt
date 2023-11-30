@@ -5,7 +5,7 @@ data class SuggestionList(
 )
 
 data class Suggestion(
-    val img:String,
+    var imgUrl: String,
     val name: String,
     val address: String,
     var streetAddress: String,
@@ -13,8 +13,16 @@ data class Suggestion(
     val latitude: String,
     val description: String,
     val locationId: String,
-    val taApiResponse: String
-)
+    val taApiResponse: String,
+    var isChecked: Boolean = false
+
+){
+
+    fun getChecked(): Boolean {
+        return isChecked
+    }
+
+}
 
 
 fun updateAddressInSuggestions(suggestions:SuggestionList){
