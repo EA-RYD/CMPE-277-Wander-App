@@ -136,6 +136,17 @@ public class MainActivity extends AppCompatActivity {
             Log.i("MainActivity", "onCreate: " + suggestionList);
             viewModel.getSuggestionList().postValue(suggestionList);
             makeTASearchApiCalls(suggestionList);
+
+            //Handler to post a delayed api call to get TA photos
+            new android.os.Handler().postDelayed(
+                    new Runnable() {
+                        public void run() {
+                            ArrayList<TASearchItem> items = (ArrayList<TASearchItem>) viewModel.getTaSearchResult().getValue().getSearchItems();
+                            makeTAPhotoApiCalls(items);
+                        }
+                    },
+                    15000);
+
         });
 
         viewModel.getSuggestionList().observe(this, suggestionList -> {
@@ -143,28 +154,6 @@ public class MainActivity extends AppCompatActivity {
             createSuggestionListCard(suggestionList);
         });
 
-
-        viewModel.getTaSearchResult().observe(this, taSearchResult -> {
-            Log.i(">>MainActivity", "TA Search Result updated. Size: " + taSearchResult.getSearchItems().size());
-            for (TASearchItem item : taSearchResult.getSearchItems()) {
-                Log.i(">>MainActivity", "TA Search Item: " + item.toString());
-            }
-            // Call TA Photo Endpoint
-            if (taSearchResult.getSearchItems().size() == 6) {
-                for (int i = 0; i < taSearchResult.getSearchItems().size(); i++) {
-                    TASearchItem item = taSearchResult.getSearchItems().get(i);
-                    String locationId = item.getLocationId();
-                    String taPicEndpoint = createTaEndpoint("photos", locationId);
-                    Log.i(">>MainActivity", "Call TA Pic Endpoint: " + taPicEndpoint);
-                    Intent intentTA = new Intent(getBaseContext(), APIRequestService.class);
-                    intentTA.putExtra("callerID", ID);
-                    intentTA.putExtra("apiUrl", taPicEndpoint);
-                    intentTA.putExtra("apiType", "photos");
-                    intentTA.putExtra("suggestionId", item.getSuggestionId());
-                    startService(intentTA);
-                }
-            }
-        });
 
         viewModel.getItinerary().observe(this, itineraryItems -> {
             if (itineraryItems.size() > 0) {
@@ -473,6 +462,22 @@ public class MainActivity extends AppCompatActivity {
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void makeTAPhotoApiCalls(ArrayList<TASearchItem> searchItems) {
+        for (int i = 0; i < searchItems.size(); i++) {
+            TASearchItem item = searchItems.get(i);
+            String locationId = item.getLocationId();
+            String suggestionId = item.getSuggestionId();
+            String taPicEndpoint = createTaEndpoint("photos", locationId);
+            Log.i(">>MainActivity", "Call TA Pic Endpoint: " + taPicEndpoint);
+            Intent intentTA = new Intent(getBaseContext(), APIRequestService.class);
+            intentTA.putExtra("callerID", ID);
+            intentTA.putExtra("apiUrl", taPicEndpoint);
+            intentTA.putExtra("apiType", "photos");
+            intentTA.putExtra("suggestionId", suggestionId);
+            startService(intentTA);
         }
     }
 
