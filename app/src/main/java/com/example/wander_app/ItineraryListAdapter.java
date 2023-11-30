@@ -34,7 +34,6 @@ public class ItineraryListAdapter extends ArrayAdapter<ItineraryItem> {
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        Log.i(">>ItineraryListAdapter", "getView: " + position);
         ItineraryItem item = getItem(position);
 
         if (convertView == null) {

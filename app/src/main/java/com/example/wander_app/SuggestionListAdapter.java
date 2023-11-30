@@ -30,7 +30,6 @@ public class SuggestionListAdapter  extends ArrayAdapter<Suggestion> {
     }
 
     public View getView(int position, @Nullable View convertView, @Nullable ViewGroup parent) {
-        Log.i(">>SuggestionListAdapter", "getView: " + position);
         Suggestion item = getItem(position);
         if (convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.suggestion_item, parent, false);
@@ -64,6 +63,8 @@ public class SuggestionListAdapter  extends ArrayAdapter<Suggestion> {
         CheckBox checkBox= convertView.findViewById(R.id.cbSuggestion);
 
         checkBox.setChecked(item.getChecked());
+
+        button.setEnabled(item.getBtnEnabled());
 
         checkBox.setOnClickListener(new View.OnClickListener() {
             @Override
