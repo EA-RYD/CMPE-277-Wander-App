@@ -110,11 +110,6 @@ class MainViewModel() : ViewModel() {
     }
 
 
-    fun updateItinerary(items: List<ItineraryItem>) {
-        itinerary.postValue(items.toMutableList())
-        Log.i(">>MainViewModel", "Itinerary updated")
-    }
-
     fun transformItineraryToSuggestionList(itineraryItems: List<ItineraryItem>) {
         val suggestions = mutableListOf<Suggestion>()
         val reversedItineraryItems = itineraryItems.reversed()
@@ -151,6 +146,23 @@ class MainViewModel() : ViewModel() {
         taPhotoResult.postValue(taPhotoItems.toMutableList())
     }
 
+    fun addItemsToItinerary(newItems: List<ItineraryItem>) {
+        val currentList = itinerary.value ?: mutableListOf()
+
+        newItems.forEach { newItem ->
+            if (currentList.none { it.locationName == newItem.locationName }) {
+                currentList.add(newItem)
+            }
+        }
+
+        itinerary.value = currentList
+    }
+
+    fun deleteItineraryItem(id: Int) {
+        val currentList = itinerary.value ?: mutableListOf()
+        currentList.removeAt(id)
+        itinerary.value = currentList
+    }
 
 }
 

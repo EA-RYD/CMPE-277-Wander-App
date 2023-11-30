@@ -3,10 +3,7 @@ package com.example.wander_app;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
-import androidx.lifecycle.LifecycleObserver;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.room.Room;
 
 import com.bumptech.glide.Glide;
@@ -20,13 +17,13 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.os.Bundle;
 import android.Manifest;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
@@ -48,7 +45,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -93,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
         loadIndicator = findViewById(R.id.loadingBar);
 
 
+
         imageViews = new ImageView[]{
                 (binding.ivList01),
                 (binding.ivList02),
@@ -111,7 +108,17 @@ public class MainActivity extends AppCompatActivity {
                 (binding.tvList06Name)
         };
 
-        Button[] buttons = new Button[]{
+        CheckBox[] checkboxes = new CheckBox[]{
+                (binding.cbList01),
+                (binding.cbList02),
+                (binding.cbList03),
+                (binding.cbList04),
+                (binding.cbList05),
+                (binding.cbList06)
+        };
+
+
+        Button[] detailButtons = new Button[]{
                 binding.btList01,
                 binding.btList02,
                 binding.btList03,
@@ -120,10 +127,10 @@ public class MainActivity extends AppCompatActivity {
                 binding.btList06
         };
 
-        for (Button button : buttons) {
+        for (Button button : detailButtons) {
             button.setOnClickListener(v -> {
                 // Handle button click
-                onButtonClick(v);
+                onDetailButtonClick(v);
             });
         }
 
@@ -147,33 +154,37 @@ public class MainActivity extends AppCompatActivity {
             showDatePickerDialog();
         });
 
-        binding.btSaveToItinerary.setOnClickListener(v -> {
+        binding.btAddToItinerary.setOnClickListener(v -> {
             List<ItineraryItem> items = new ArrayList<>();
             for (int i = 0; i < 6; i++) {
-                Integer suggestionId = i;
-                String locationId = viewModel.getTaPhotoResult().getValue().get(i).getLocationId();
-                String responseString = viewModel.getTaPhotoResult().getValue().get(i).getResponseString();
-                String imageUrl = viewModel.getTaPhotoResult().getValue().get(i).getImgUrl();
-                String locationName = viewModel.getSuggestionList().getValue().getSuggestions().get(i).getName();
-                String description = viewModel.getSuggestionList().getValue().getSuggestions().get(i).getDescription();
-                String address = viewModel.getSuggestionList().getValue().getSuggestions().get(i).getAddress();
-                ItineraryItem itineraryItem = new ItineraryItem(suggestionId, locationId, responseString, locationName, description, imageUrl, address,0);
-                items.add(itineraryItem);
+                if (checkboxes[i].isChecked()) {
+                    Integer suggestionId = i;
+                    String locationId = viewModel.getTaPhotoResult().getValue().get(i).getLocationId();
+                    String responseString = viewModel.getTaPhotoResult().getValue().get(i).getResponseString();
+                    String imageUrl = viewModel.getTaPhotoResult().getValue().get(i).getImgUrl();
+                    String locationName = viewModel.getSuggestionList().getValue().getSuggestions().get(i).getName();
+                    String description = viewModel.getSuggestionList().getValue().getSuggestions().get(i).getDescription();
+                    String address = viewModel.getSuggestionList().getValue().getSuggestions().get(i).getAddress();
+                    ItineraryItem itineraryItem = new ItineraryItem(suggestionId, locationId, responseString, locationName, description, imageUrl, address, 0);
+                    items.add(itineraryItem);
+                }
             }
 
-            if (items != null) {
-                saveItineraryItems(db, items);
-            }
-            Log.i(">>MainActivity", "onCreate: " + "Itinerary saved");
+            viewModel.addItemsToItinerary(items);
+            Log.i(">>MainActivity", "onCreate: " + "Itinerary updated");
         });
 
         binding.btnLoadItinerary.setOnClickListener(v -> {
-            fetchLastInsertedItineraryItems(db);
+            loadItineraryItems(db);
         });
 
-        viewModel.getResponse().observe(this, response -> {
-            Log.i("MainActivity", "onCreate: " + response);
+        binding.btnSaveToPhone.setOnClickListener(v -> {
+            saveItineraryItems(db);
         });
+
+//        viewModel.getResponse().observe(this, response -> {
+//            Log.i("MainActivity", "onCreate: " + response);
+//        });
 
         viewModel.getSuggestionList().observe(this, suggestionList -> {
             Log.i("MainActivity", "onCreate: " + suggestionList);
@@ -209,34 +220,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-//        viewModel.getLoadedSuggestionList().observe(this, suggestionList -> {
-//            Log.i("MainActivity", "onCreate: " + suggestionList);
-//            binding.tvList01Description.setText(suggestionList.get(0).getDescription());
-//            binding.tvList01Name.setText(suggestionList.get(0).getName());
-//            binding.tvList02Description.setText(suggestionList.get(1).getDescription());
-//            binding.tvList02Name.setText(suggestionList.get(1).getName());
-//            binding.tvList03Description.setText(suggestionList.get(2).getDescription());
-//            binding.tvList03Name.setText(suggestionList.get(2).getName());
-//            binding.tvList04Description.setText(suggestionList.get(3).getDescription());
-//            binding.tvList04Name.setText(suggestionList.get(3).getName());
-//            binding.tvList05Description.setText(suggestionList.get(4).getDescription());
-//            binding.tvList05Name.setText(suggestionList.get(4).getName());
-//            binding.tvList06Description.setText(suggestionList.get(5).getDescription());
-//            binding.tvList06Name.setText(suggestionList.get(5).getName());
-//            binding.llSuggestions.setVisibility(View.VISIBLE);
-//
-//            for (int i = 0; i < 6; i++) {
-//                String imgUrl = viewModel.getLoadedSuggestionList().getValue().get(i).getImg();
-//                Log.i(">>MainActivity", "Loaded img url: " + imgUrl);
-//                if (imgUrl != null && !imgUrl.trim().isEmpty()) {
-//                    Glide.with(getBaseContext()).load(imgUrl).into(imageViews[i]);
-//                } else{
-//                    Log.i(">>MainActivity", "onCreate: " + "No image url found");
-//                    imageViews[i].setImageResource(R.drawable.default_picture);
-//                }
-//            }
-//        });
-
 
         viewModel.getTaSearchResult().observe(this, taSearchResult -> {
             Log.i(">>MainActivity", "TA Search Result updated");
@@ -247,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
                 for (int i = 0; i < taSearchResult.getSearchItems().size(); i++) {
                     TASearchItem item = taSearchResult.getSearchItems().get(i);
                     String locationId = item.getLocationId();
-//                taPhotoItems[i].setLocationId(locationId);
+//                  taPhotoItems[i].setLocationId(locationId);
                     String taPicEndpoint = createTaEndpoint("photos", locationId);
                     Log.i(">>MainActivity", "Call TA Pic Endpoint: " + taPicEndpoint);
                     Intent intentTA = new Intent(getBaseContext(), APIRequestService.class);
@@ -261,8 +244,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
         viewModel.getItinerary().observe(this, itineraryItems -> {
-            viewModel.transformItineraryToSuggestionList(itineraryItems);
-            viewModel.transformItineraryToTaPhotoResult(itineraryItems);
             createItineraryCard();
         });
 
@@ -331,8 +312,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-    private void onButtonClick(View v) {
+    private void onDetailButtonClick(View v) {
         String btnId = String.valueOf(v.getId());
 
         if (btnId.length() >= 1) {
@@ -503,37 +483,45 @@ public class MainActivity extends AppCompatActivity {
         return TRIP_ADVISOR_LOCATION_ENDPOINT + "/" + locationId + "/" + endpointType + "?key=" + tripAdvisorKey + "&language=en";
     }
 
-    private void saveItineraryItems(Database database, List<ItineraryItem> items) {
+    private void saveItineraryItems(Database database) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                for (ItineraryItem item : items) {
+                database.itineraryItemDao().deleteAll();
+                for (ItineraryItem item : viewModel.getItinerary().getValue()) {
                     database.itineraryItemDao().insert(item);
                 }
-                viewModel.updateItinerary(items);
             }
         }).start();
     }
 
-    public void fetchLastInsertedItineraryItems(Database database) {
+    public void loadItineraryItems(Database database) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                List<ItineraryItem> items = database.itineraryItemDao().getLastInsertedItineraryItems();
+                List<ItineraryItem> items = database.itineraryItemDao().getItineraryItems();
                 Log.i(">>MainActivity", "fetchLastInsertedItineraryItems: " + items.toString());
-                viewModel.updateItinerary(items);
+                viewModel.getItinerary().postValue(items);
             }
         }).start();
     }
+
 
     private void createItineraryCard() {
         CardView cv = findViewById(R.id.cvItinerary);
         ArrayList itineraryItems = new ArrayList(viewModel.getItinerary().getValue());
-        Log.i(">>MainActivity", "createItineraryCard: " + itineraryItems.size() );
+        Log.i(">>MainActivity", "createItineraryCard: " + itineraryItems.size());
         for (Object item : itineraryItems) {
             Log.i(">>MainActivity", "createItineraryCard: " + item.toString());
         }
-        ItineraryListAdapter listAdapter = new ItineraryListAdapter(this, itineraryItems);
+        ItineraryListAdapter.OnDeleteListener listener = new ItineraryListAdapter.OnDeleteListener() {
+            @Override
+            public void onDelete(int position) {
+                Log.i(">>MainActivity", "onDeleteButtonClick: " + "Delete button clicked" + position);
+                viewModel.deleteItineraryItem(position);
+            }
+        };
+        ItineraryListAdapter listAdapter = new ItineraryListAdapter(this, itineraryItems, listener);
         ListView listView = findViewById(R.id.lvItineraryList);
         listView.setAdapter(listAdapter);
         Integer listViewHeight = getTotalHeightOfListView(listView);

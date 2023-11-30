@@ -23,7 +23,7 @@ interface ItineraryItemDao {
     @Query("DELETE FROM ItineraryItem")
     fun deleteAll()
 
-    @Query("SELECT * FROM ItineraryItem ORDER BY id DESC LIMIT 6")
-    fun getLastInsertedItineraryItems(): List<ItineraryItem>
+    @Query("SELECT * FROM ItineraryItem ORDER BY id")
+    fun getItineraryItems(): List<ItineraryItem>
 
 }

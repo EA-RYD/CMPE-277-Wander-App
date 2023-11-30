@@ -136,7 +136,7 @@
                 android:id="@+id/btnSendRequest"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
+                android:layout_marginStart="16dp"
                 android:layout_marginTop="12dp"
                 android:text="Send Request"
                 app:layout_constraintStart_toStartOf="parent"
@@ -147,7 +147,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:layout_marginEnd="24dp"
+                android:layout_marginEnd="16dp"
                 android:text="Load Saved Itinerary"
                 app:layout_constraintBottom_toBottomOf="@+id/btnSendRequest"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -515,11 +515,11 @@
                 </LinearLayout>
 
                 <Button
-                    android:id="@+id/btSaveToItinerary"
+                    android:id="@+id/btAddToItinerary"
                     style="@style/WanderAppTheme.Button"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Save to Itinerary" />
+                    android:text="Add to Itinerary" />
 
             </LinearLayout>
             <!--            </ScrollView>-->
@@ -568,6 +568,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="8dp"
                 android:layout_marginTop="10dp"
+                android:layout_marginRight="8dp"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/llSuggestions">
@@ -596,6 +597,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -604,18 +606,23 @@
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/cvItinerary">
 
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/btnSaveToPhone"
+                    android:text="Save to Phone" />
+
                 <EditText
                     android:id="@+id/etEmail"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:hint="foo@gmail.com"
-                    android:gravity="center"
                     android:inputType="textEmailAddress" />
 
                 <Button
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
+                    android:layout_gravity="start"
                     android:text="Send Itinerary to Email" />
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
