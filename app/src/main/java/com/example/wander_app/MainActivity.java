@@ -478,16 +478,21 @@ public class MainActivity extends AppCompatActivity {
     private void makeTAPhotoApiCalls(ArrayList<TASearchItem> searchItems) {
         for (int i = 0; i < searchItems.size(); i++) {
             TASearchItem item = searchItems.get(i);
-            String locationId = item.getLocationId();
-            String suggestionId = item.getSuggestionId();
-            String taPicEndpoint = createTaEndpoint("photos", locationId);
-            Log.i(">>MainActivity", "Call TA Pic Endpoint: " + taPicEndpoint);
-            Intent intentTA = new Intent(getBaseContext(), APIRequestService.class);
-            intentTA.putExtra("callerID", ID);
-            intentTA.putExtra("apiUrl", taPicEndpoint);
-            intentTA.putExtra("apiType", "photos");
-            intentTA.putExtra("suggestionId", suggestionId);
-            startService(intentTA);
+            if (!item.getLocationId().isEmpty()) {
+                viewModel.getSuggestionList().getValue().getSuggestions().get(i).setBtnEnabled(true);
+                String locationId = item.getLocationId();
+                String suggestionId = item.getSuggestionId();
+                String taPicEndpoint = createTaEndpoint("photos", locationId);
+                Log.i(">>MainActivity", "Call TA Pic Endpoint: " + taPicEndpoint);
+                Intent intentTA = new Intent(getBaseContext(), APIRequestService.class);
+                intentTA.putExtra("callerID", ID);
+                intentTA.putExtra("apiUrl", taPicEndpoint);
+                intentTA.putExtra("apiType", "photos");
+                intentTA.putExtra("suggestionId", suggestionId);
+                startService(intentTA);
+            } else {
+                viewModel.getSuggestionList().getValue().getSuggestions().get(i).setBtnEnabled(false);
+            }
         }
     }
 

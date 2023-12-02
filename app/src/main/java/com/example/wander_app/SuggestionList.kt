@@ -14,7 +14,8 @@ data class Suggestion(
     val description: String,
     val locationId: String,
     val taApiResponse: String,
-    var isChecked: Boolean = false
+    var isChecked: Boolean = false,
+    var btnEnabled: Boolean = true
 
 ){
 
