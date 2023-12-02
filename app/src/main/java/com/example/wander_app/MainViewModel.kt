@@ -9,15 +9,14 @@ import com.tutorial.chatgptapp.ChatGptRepository
 import kotlinx.coroutines.launch
 
 
-class MainViewModel() : ViewModel() {
+class MainViewModel : ViewModel() {
 
     val gpt = ChatGptRepository()
     val response = MutableLiveData<String>()
-    val message = MutableLiveData<String>()
     val location = MutableLiveData<String>()
     val suggestionList = MutableLiveData<SuggestionList>()
+    val rawSuggestionList = MutableLiveData<SuggestionList>()
     val taSearchResult = MutableLiveData<TASearchResult>()
-    val loadedSuggestionList = MutableLiveData<MutableList<Suggestion>>()
 
     init {
         // Initialize with an empty TASearchResult
@@ -60,8 +59,8 @@ class MainViewModel() : ViewModel() {
                     SuggestionList::class.java
                 )
                 updateAddressInSuggestions(suggestions)
-                suggestionList.value = suggestions
-                Log.i(">>", "suggestions: ${suggestionList.value}")
+                rawSuggestionList.value = suggestions
+                Log.i(">>", "suggestions: ${rawSuggestionList.value}")
 
             } catch (e: Exception) {
                 Log.e("MainViewModel", "Error in suspend function", e)
@@ -69,7 +68,7 @@ class MainViewModel() : ViewModel() {
         }
     }
 
-    public fun updateMessage(newMessage: String) {
+    fun updateMessage(newMessage: String) {
         gpt.addMessage(newMessage)
     }
 
@@ -110,47 +109,42 @@ class MainViewModel() : ViewModel() {
     }
 
 
-    fun updateItinerary(items: List<ItineraryItem>) {
-        itinerary.postValue(items.toMutableList())
-        Log.i(">>MainViewModel", "Itinerary updated")
-    }
+    fun addItemsToItinerary(newItems: List<ItineraryItem>) {
+        val currentList = itinerary.value ?: mutableListOf()
 
-    fun transformItineraryToSuggestionList(itineraryItems: List<ItineraryItem>) {
-        val suggestions = mutableListOf<Suggestion>()
-        val reversedItineraryItems = itineraryItems.reversed()
-        for (item in reversedItineraryItems) {
-            suggestions.add(
-                Suggestion(
-                    item.imgUrl,
-                    item.locationName,
-                    "",
-                    "",
-                    "",
-                    "",
-                    item.description,
-                    item.locationId,
-                    item.responseString
-                )
-            )
+        newItems.forEach { newItem ->
+            if (currentList.none { it.locationName == newItem.locationName }) {
+                currentList.add(newItem)
+            }
         }
-        loadedSuggestionList.postValue(suggestions.toMutableList())
+
+        itinerary.value = currentList
     }
 
-    fun transformItineraryToTaPhotoResult(itineraryItems: MutableList<ItineraryItem>) {
-        val taPhotoItems = mutableListOf<TAPhotoItem>()
-        val reversedItineraryItems = itineraryItems.reversed()
-        for (item in reversedItineraryItems) {
-            taPhotoItems.add(
-                TAPhotoItem(
-                    item.locationId,
-                    item.responseString,
-                    item.imgUrl
-                )
-            )
+    fun deleteItineraryItem(id: Int) {
+        val currentList = itinerary.value ?: mutableListOf()
+        currentList.removeAt(id)
+        itinerary.value = currentList
+    }
+
+   fun updateImgUrlToSuggestion(id: Int, imgUrl:String) {
+       Log.i(">>MainViewModel", "updateImgUrlToSuggestion: $id")
+       val items = suggestionList.value?.suggestions?.toMutableList()
+       val item = items?.get(id)
+       if (item != null) {
+           item.imgUrl = imgUrl
+       }
+         suggestionList.value = SuggestionList(items!!)
+   }
+
+    fun resetPhotoResult() {
+        val initialPhotoItems = MutableList(6) { TAPhotoItem() }
+        for (item in initialPhotoItems) {
+            item.imgUrl = ""
+            item.responseString = ""
+            item.locationId = ""
         }
-        taPhotoResult.postValue(taPhotoItems.toMutableList())
+        taPhotoResult.postValue(initialPhotoItems)
     }
-
-
 }
 

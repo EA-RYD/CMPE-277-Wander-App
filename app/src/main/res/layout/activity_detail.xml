@@ -139,7 +139,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="31dp"
                 android:gravity="center"
-                android:text="Details: Example Location Name"
+                android:text="Details: "
                 android:textSize="24sp"
                 app:layout_constraintBottom_toTopOf="@id/pic_frag"
                 app:layout_constraintStart_toStartOf="parent"
