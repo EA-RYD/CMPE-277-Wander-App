@@ -106,6 +106,8 @@ public class MainActivity extends AppCompatActivity {
                 gpt.callSendMessageApi("My preference is " + preferenceText + ". Your response must follow the json format defined in the instruction");
             }
             Toast.makeText(this, "Request sent!", Toast.LENGTH_SHORT).show();
+
+
             gpt.callRunMessage();
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override
@@ -263,6 +265,7 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             JSONObject response = null;
             Log.i(">>Receiver", "TA Message Received!");
+            loadIndicator.setVisibility(View.INVISIBLE);
             if (intent != null && intent.getStringExtra("callerID").equals(ID)) {
                 try {
                     response = new JSONObject(intent.getStringExtra("jsonObject"));
@@ -330,7 +333,6 @@ public class MainActivity extends AppCompatActivity {
                             if (data.has("images")) {
                                 JSONObject images = data.getJSONObject("images");
                                 if (images.has("medium")) {
-                                    loadIndicator.setVisibility(View.INVISIBLE);
                                     JSONObject mediumImage = images.getJSONObject("medium");
                                     String imageUrl = mediumImage.getString("url");
                                     viewModel.updatePhotoItemImgUrl(Integer.parseInt(suggestionId), imageUrl);

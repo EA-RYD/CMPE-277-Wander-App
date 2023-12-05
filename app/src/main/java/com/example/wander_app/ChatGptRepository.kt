@@ -25,20 +25,20 @@ import org.json.JSONObject
 import java.io.IOException
 
 
-data class ChatMessage(val role: String, val content: String)
-data class ChatSession(val model: String, val messages: List<ChatMessage>)
+
 class ChatGptRepository() {
     val apiKey: String
     var chatGptTreadId: String
     val chatGptAssistantId: String
 
     init {
-        apiKey = "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"
+        apiKey = ""
         chatGptTreadId = ""
         chatGptAssistantId = "asst_yB7SSMUnQze5Ten1oKyNgjbH"
     }
 
     fun callCreateThreadApi() {
+        Log.i(">>callCreateThreadApi", "callCreateThreadApi: starting..")
         val client = OkHttpClient()
         val url = "https://api.openai.com/v1/threads/runs"
 
@@ -48,7 +48,7 @@ class ChatGptRepository() {
             "assistant_id":"$chatGptAssistantId",
             "thread": {
                 "messages": [
-                    {"role": "user", "content":"You are working as a module in an application to provide travel suggestions for the users. Your response should always be in JSON format.Your Json response should include exactly 6 suggestions, and for each suggestion always include name, alias, address, and longitude and latitude of the place and a short description(no more than 30 words). Users can provide a travel location or preference. If a later travel Location comes in, use the later location  and ignore the previous ones. Stay with the defined json format. Use address information(if not nan) in the uploaded file if the travel location is San Diego. Don't add any other text besides the json string"}
+                    {"role": "user", "content":"You are working as a module in an application to provide travel suggestions for the users. Your response should always be in a strictly JSON format.Your Json response should include exactly 6 suggestions, and for each suggestion always include name, alias, address(should not be none and street address comes first), and longitude and latitude of the place and a short description(no more than 30 words). Users can provide a travel location or preference. If a later travel Location comes in, use the later location  and ignore the previous ones. Stay with the defined json format. Use address information(if not nan) in the uploaded file if the travel location is San Diego. Don't add any other text besides the json string"}
                 ]
             }
         }
@@ -75,8 +75,8 @@ class ChatGptRepository() {
 
                 } else {
                     responseBodyString = response.body?.string().toString()
+                    Log.i(">>callCreateThreadApi", "Success Response: $responseBodyString")
                     chatGptTreadId = getThreadIdFromResponse(responseBodyString!!).toString()
-                    Log.i(">>callCreateThreadApi", "Response: $responseBodyString")
                     Log.i(">>callCreateThreadApi", "chatGptTreadId: $chatGptTreadId")
                 }
             }
@@ -265,7 +265,7 @@ class ChatGptRepository() {
                 suggestion.apply {
                     imgUrl = "" // Set default or compute value
                     isChecked = false // Default value
-                    btnEnabled = true // Default value
+                    btnEnabled = false // Default value
                 }
             })
             updateAddressInSuggestions(suggestionList)
