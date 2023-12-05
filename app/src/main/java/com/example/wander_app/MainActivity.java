@@ -53,6 +53,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
+import kotlin.Unit;
+
 public class MainActivity extends AppCompatActivity {
     FusedLocationProviderClient fusedLocationProviderClient;
 
@@ -68,6 +70,11 @@ public class MainActivity extends AppCompatActivity {
     private final String TRIP_ADVISOR_LOCATION_ENDPOINT = "https://api.content.tripadvisor.com/api/v1/location";
     private ChatGptRepository gpt = new ChatGptRepository();
 
+
+    private Unit onCallRetrieveApiFinishKotlin(SuggestionList suggestionList) {
+        viewModel.getRawSuggestionList().postValue(suggestionList);
+        return Unit.INSTANCE;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,22 +94,24 @@ public class MainActivity extends AppCompatActivity {
 
         viewModel = new ViewModelProvider(this).get(MainViewModel.class);
         loadIndicator = findViewById(R.id.loadingBar);
+        gpt = new ChatGptRepository();
+        gpt.callCreateThreadApi();
 
 
         binding.btnSendRequest.setOnClickListener(v -> {
             loadIndicator.setVisibility(View.VISIBLE);
-            gpt.callSendMessageApi("My travel location is " + binding.etLocation.getText().toString());
+            gpt.callSendMessageApi("My travel location is " + binding.etLocation.getText().toString() + ". Your response must follow the json format defined in the instruction");
             String preferenceText = binding.etPreference.getText().toString();
             if (!preferenceText.isEmpty()) {
-                gpt.callSendMessageApi("My preference is " + preferenceText);
+                gpt.callSendMessageApi("My preference is " + preferenceText + ". Your response must follow the json format defined in the instruction");
             }
             Toast.makeText(this, "Request sent!", Toast.LENGTH_SHORT).show();
             gpt.callRunMessage();
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    // Call the retrieve API method after 30 seconds
-                    gpt.callRetrieveApi();
+                    // Call the retrieve API method after 20 seconds
+                    gpt.callRetrieveApi(suggestionList -> onCallRetrieveApiFinishKotlin(suggestionList));
                 }
             }, 20000); // 20 seconds
 
