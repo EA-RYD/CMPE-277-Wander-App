@@ -7,6 +7,7 @@ data class SuggestionList(
 data class Suggestion(
     var imgUrl: String,
     val name: String,
+    val alias: String,
     val address: String,
     var streetAddress: String,
     val longitude: String,

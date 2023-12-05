@@ -3,15 +3,16 @@ package com.example.wander_app
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.tutorial.chatgptapp.ChatGptRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.lifecycle.viewModelScope
 
 
 class MainViewModel : ViewModel() {
 
-    val gpt = ChatGptRepository()
+//    val gpt = ChatGptRepository()
     val response = MutableLiveData<String>()
     val location = MutableLiveData<String>()
     val suggestionList = MutableLiveData<SuggestionList>()
@@ -46,31 +47,14 @@ class MainViewModel : ViewModel() {
     }
 
 
-    fun sendRequest() {
-        viewModelScope.launch {
-            try {
-                response.value = gpt.makeApiRequest()
-                val gson = Gson()
-                val gptResponse = gson.fromJson(response.value, GptResponse::class.java)
-                Log.i(">>", "suggestions: ${gptResponse.choices[0].message.content}")
-
-                val suggestions = gson.fromJson(
-                    gptResponse.choices[0].message.content,
-                    SuggestionList::class.java
-                )
-                updateAddressInSuggestions(suggestions)
-                rawSuggestionList.value = suggestions
-                Log.i(">>", "suggestions: ${rawSuggestionList.value}")
-
-            } catch (e: Exception) {
-                Log.e("MainViewModel", "Error in suspend function", e)
-            }
-        }
-    }
-
-    fun updateMessage(newMessage: String) {
-        gpt.addMessage(newMessage)
-    }
+//    fun sendRequest() {
+//        gpt.callSendMessageApi()
+//        gpt.callRunMessage()
+//        viewModelScope.launch {
+//            delay(20000) // Delay for 20 seconds (20000 milliseconds)
+//            response.value = gpt.callRetrieveApi()
+//        }
+//    }
 
     fun updatePhotoItemLocationId(suggestionId: Int, locationId: String) {
         val currentList = taPhotoResult.value ?: mutableListOf()

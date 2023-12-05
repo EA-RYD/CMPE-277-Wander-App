@@ -15,6 +15,8 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.os.Bundle;
 import android.Manifest;
@@ -34,6 +36,11 @@ import com.example.wander_app.models.LocationPDF;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.tutorial.chatgptapp.ChatGptRepository;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -59,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
     private Database db;
 
     private final String TRIP_ADVISOR_LOCATION_ENDPOINT = "https://api.content.tripadvisor.com/api/v1/location";
+    private ChatGptRepository gpt = new ChatGptRepository();
 
 
     @Override
@@ -70,8 +78,6 @@ public class MainActivity extends AppCompatActivity {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         registerReceiver(apiReceiver, new IntentFilter(
                 APIRequestService.Broadcast_id));
-//        boolean result = this.deleteDatabase("itinerary");
-//        Log.i(">>MainActivity", "onCreate: Delete Database " + result);
         db = Room.databaseBuilder(
                 this,
                 Database.class,
@@ -85,13 +91,21 @@ public class MainActivity extends AppCompatActivity {
 
         binding.btnSendRequest.setOnClickListener(v -> {
             loadIndicator.setVisibility(View.VISIBLE);
-            viewModel.updateMessage(binding.etLocation.getText().toString());
+            gpt.callSendMessageApi("My travel location is " + binding.etLocation.getText().toString());
             String preferenceText = binding.etPreference.getText().toString();
             if (!preferenceText.isEmpty()) {
-                viewModel.updateMessage(preferenceText);
+                gpt.callSendMessageApi("My preference is " + preferenceText);
             }
             Toast.makeText(this, "Request sent!", Toast.LENGTH_SHORT).show();
-            viewModel.sendRequest();
+            gpt.callRunMessage();
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    // Call the retrieve API method after 30 seconds
+                    gpt.callRetrieveApi();
+                }
+            }, 20000); // 20 seconds
+
         });
 
         binding.btnCurrentLocation.setOnClickListener(v -> {
@@ -531,5 +545,17 @@ public class MainActivity extends AppCompatActivity {
     private String getEmail() {
         TextView tv = findViewById(R.id.etEmail);
         return tv.getText().toString();
+    }
+}
+
+class ChatGptResponse {
+    private String content;
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
     }
 }
