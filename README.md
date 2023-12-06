@@ -36,7 +36,7 @@ Wander is a free android application that introduces an innovative, feature rich
 <img width="373" alt="09" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/351537ab-3e3f-4ed0-987e-7d1a8ac38028">
 <img width="390" alt="01 copy" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/8e62dd88-d9e2-4e8e-a266-bfec4daa4712">
 
-- Send itinerary to your or your friends' email. Waner will send the itinerary as pdf to the mailbox.
+- Send itinerary to your or your friends' email. Wander will send the itinerary as pdf to the mailbox.
  <img width="366" alt="10" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/356fa8dd-90ee-49f9-981d-3a1896d66c3a">
  <img width="608" alt="12" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/a60ccc2d-df92-434b-9852-785346e65a0c">
 
