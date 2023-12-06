@@ -36,5 +36,18 @@ fun updateAddressInSuggestions(suggestions:SuggestionList){
 fun parseAddress(addressString: String): String {
     val parts = addressString.split(",").map { it.trim() }
     if (parts.isEmpty()) return ""  // Not a valid address format
-    return parts[0]
+
+    // Split the first part of the address into words
+    val streetPartWords = parts[0].split(" ")
+
+    // Check if the first word is a number
+    val regex = Regex("^[0-9]+\$")
+    val firstWordIsNumber = streetPartWords.firstOrNull()?.matches(regex) == true
+
+    // If the first word is a number, drop it; otherwise, keep the address as is
+    return if (firstWordIsNumber) {
+        streetPartWords.drop(1).joinToString(" ")
+    } else {
+        parts[0]
+    }
 }

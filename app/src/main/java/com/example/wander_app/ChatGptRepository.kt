@@ -71,11 +71,11 @@ class ChatGptRepository() {
                 var responseBodyString = ""
                 if (!response.isSuccessful) {
                     responseBodyString = response.body?.string().toString()
-                   Log.i(">>callCreateThreadApi", "Fail Response: $responseBodyString")
+//                   Log.i(">>callCreateThreadApi", "Fail Response: $responseBodyString")
 
                 } else {
                     responseBodyString = response.body?.string().toString()
-                    Log.i(">>callCreateThreadApi", "Success Response: $responseBodyString")
+//                    Log.i(">>callCreateThreadApi", "Success Response: $responseBodyString")
                     chatGptTreadId = getThreadIdFromResponse(responseBodyString!!).toString()
                     Log.i(">>callCreateThreadApi", "chatGptTreadId: $chatGptTreadId")
                 }
@@ -117,7 +117,7 @@ class ChatGptRepository() {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                Log.i(">>callSendMessageApi", "Response: ${response.body?.string()}")
+//                Log.i(">>callSendMessageApi", "Response: ${response.body?.string()}")
             }
         })
     }
@@ -148,9 +148,37 @@ class ChatGptRepository() {
 
             override fun onResponse(call: Call, response: Response) {
                 // Handle the successful response
-                Log.i(">>callRunMessage", "Response: ${response.body?.string()}")
+//                Log.i(">>callRunMessage", "Response: ${response.body?.string()}")
             }
         })
+    }
+
+    fun initialRetrieveApi() {
+        val client = OkHttpClient()
+
+        // Define a recursive function for repeated calls
+        fun makeApiCall() {
+            val request = Request.Builder()
+                .url("https://api.openai.com/v1/threads/$chatGptTreadId/messages")
+                .get()  // Since we're retrieving data, we use GET
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Authorization", "Bearer $apiKey")
+                .addHeader("OpenAI-Beta", "assistants=v1")
+                .build()
+
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    // Log the error
+                    Log.e(">>callRetrieveApi", "API call failed", e)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.isSuccessful) {
+                        Log.i(">>callRetrieveApi", "Response: ${response.body?.string()}")
+                    }
+                }
+            })
+        }
     }
     fun callRetrieveApi(onFinish: (SuggestionList) -> Unit) {
         val client = OkHttpClient()
@@ -189,7 +217,7 @@ class ChatGptRepository() {
 
                                         CoroutineScope(Dispatchers.Main).launch {
                                             if (value.isNotEmpty() && role == "assistant"){
-                                                Log.i(">>callRetrieveApi", "Value: $value")
+//                                                Log.i(">>callRetrieveApi", "Value: $value")
 
                                                 // put suggestion to the raw suggestion list
                                                 val suggestions = convertJsonToSuggestionList(value)
@@ -209,7 +237,7 @@ class ChatGptRepository() {
                             }
                         }
                     } else {
-                        Log.e(">>callRetrieveApi", "API call was not successful, Response JSON: ${response.body?.string()}")
+//                        Log.e(">>callRetrieveApi", "API call was not successful, Response JSON: ${response.body?.string()}")
                     }
                 }
             })
