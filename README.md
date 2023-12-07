@@ -4,6 +4,13 @@ Class Project for CMPE 277
 Wander is a free android application that introduces an innovative, feature rich, assistant for vacation trip planning. The application leverages AI technology and Large Language Models to act as an intelligent travel planning guide. Recognizing the time-consuming nature of conventional travel planning, Wander aims to streamline this process by collecting location specific information along with user-specific preferences. The application is then able to facilitate efficient itinerary generation, taking into account factors such as travel season, interests, and suitability for different ranges of families. With the integration of AI and informative travel data APIs, Wander promises to provide users with effortless yet personalized travel experiences.
 
 ## Installation Instructions
+Unfortunately, this application is not available on the Google Play Store currently. A method of local installation would be to use a phone with an Android OS and connect it to Android Studio to deploy the application on the hardware. 
+![image](https://github.com/EA-RYD/CMPE-277-Wander-App/assets/32498849/5df19b1b-2614-47f8-ab16-1736ae3230da)
+
+Once a device is connected either via USB or Wifi, the device will have to be set to developer mode and then the Android Studio Application can just be run normally so that it deploys to the local device. Note: Wifi connection only works for Android 11 and above versions of Android.
+
+To be able to run the application as intended, TripAdvisor and OpenAI API keys are required. These can be substituted into the variables named after them in the DetailsActivity and ChatGptRepository files respectively. 
+
 
 ## Usage Instructions
 - A User can use text/voice input to specify a travel location or a preference. 
