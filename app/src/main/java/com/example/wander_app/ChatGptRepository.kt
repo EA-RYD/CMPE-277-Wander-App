@@ -33,7 +33,7 @@ class ChatGptRepository() {
 
     init {
         apiKey = ""
-        chatGptTreadId = ""
+        chatGptTreadId = "thread_JzagLk72OrIuw520JG7b9GvP"
         chatGptAssistantId = "asst_yB7SSMUnQze5Ten1oKyNgjbH"
     }
 

@@ -97,23 +97,24 @@ public class MainActivity extends AppCompatActivity {
         loadIndicator = findViewById(R.id.loadingBar);
         gpt = new ChatGptRepository();
 
-        gpt.callCreateThreadApi();
-        loadIndicator.setVisibility(View.VISIBLE);
-
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                gpt.callSendMessageApi("You are working as a module in an application to provide travel suggestions for the users. Your response should always be in valid JSON format.Your Json response should include exactly 6 suggestions, and for each suggestion always include name, address(should not be none and street address comes first), and longitude and latitude of the place and a short description(no more than 30 words). Users can provide a travel location or preference. If a later travel Location comes in, use the later location  and ignore the previous ones. Stay with the defined json format. Use address information(if not nan) in the uploaded file only if the travel location is San Diego. You should always strictly follow this format requirement. Json response should always have every key and value specified here.");
-                gpt.callSendMessageApi("You have full access to the uploaded files. Do not reply any thing else except the json required.");
-            }
-        }, 5000);
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                gpt.callRunMessage();
-                loadIndicator.setVisibility(View.INVISIBLE);
-            }
-        }, 5000);
+        //Create a new chatGPT thread
+//        gpt.callCreateThreadApi();
+//        loadIndicator.setVisibility(View.VISIBLE);
+//
+//        handler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                gpt.callSendMessageApi("You are working as a module in an application to provide travel suggestions for the users. Your response should always be in valid JSON format.Your Json response should include exactly 6 suggestions, and for each suggestion always include name, address(should not be none and street address comes first), and longitude and latitude of the place and a short description(no more than 30 words). Users can provide a travel location or preference. If a later travel Location comes in, use the later location  and ignore the previous ones. Stay with the defined json format. Use address information(if not nan) in the uploaded file only if the travel location is San Diego. You should always strictly follow this format requirement. Json response should always have every key and value specified here.");
+//                gpt.callSendMessageApi("You have full access to the uploaded files. Do not reply any thing else except the json required.");
+//            }
+//        }, 5000);
+//        handler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                gpt.callRunMessage();
+//                loadIndicator.setVisibility(View.INVISIBLE);
+//            }
+//        }, 5000);
 
 
 //        handler.postDelayed(new Runnable() {
@@ -127,13 +128,16 @@ public class MainActivity extends AppCompatActivity {
 
         binding.btnSendRequest.setOnClickListener(v -> {
             loadIndicator.setVisibility(View.VISIBLE);
-            gpt.callSendMessageApi("My travel location is " + binding.etLocation.getText().toString() + ". Your suggestions should within this city. Your response must follow the json format defined in the instruction");
+            String locationText = binding.etLocation.getText().toString();
+            if (!locationText.isEmpty()) {
+                gpt.callSendMessageApi("My travel location is " + locationText + ". Your suggestions should within this city. Your response must follow the json format defined in the instruction");
+            }
             String preferenceText = binding.etPreference.getText().toString();
             if (!preferenceText.isEmpty()) {
                 gpt.callSendMessageApi("My preference is " + preferenceText + ". Your response must be has 6 suggest locations without duplication, try to include new locations. Make sure the response is in valid json format defined without any other comments.");
             }
             Toast.makeText(this, "Request sent!", Toast.LENGTH_SHORT).show();
-            binding.etLocation.setText("");
+//            binding.etLocation.setText("");
             binding.etPreference.setText("");
 
 
@@ -149,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
                     // Call the retrieve API method after 20 seconds
                     gpt.callRetrieveApi(suggestionList -> onCallRetrieveApiFinishKotlin(suggestionList));
                 }
-            }, 15000); // 15 seconds
+            }, 20000); // 20 seconds
 
         });
 
@@ -506,8 +510,9 @@ public class MainActivity extends AppCompatActivity {
         viewModel.resetPhotoResult();
         for (int i = 0; i < suggestionList.getSuggestions().size(); i++) {
             Suggestion item = suggestionList.getSuggestions().get(i);
-            String longitude = item.getLongitude();
-            String latitude = item.getLatitude();
+            String longitude = clean_coordinate(item.getLongitude());
+            String latitude = clean_coordinate(item.getLatitude());
+            Log.i(">>MainActivity", "makeTASearchApiCalls: " + longitude + ", " + latitude);
             String street = item.getStreetAddress();
             String suggestionId = String.valueOf(i);
             try {
@@ -516,6 +521,12 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+    }
+
+    private String clean_coordinate(String coordinate) {
+        String clean_coordinate = coordinate.replaceAll("[^\\d.-]|°|N|S|E|W|\\s+", "");
+        Log.i(">>MainActivity", "clean_coordinate: " + clean_coordinate);
+        return clean_coordinate;
     }
 
     private void makeTAPhotoApiCalls(ArrayList<TASearchItem> searchItems) {
