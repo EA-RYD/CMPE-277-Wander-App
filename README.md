@@ -1,6 +1,7 @@
-# CMPE-277-Wander-App
 Class Project for CMPE 277
 ## Project Overview
+<img width="366" alt="Screenshot 2023-12-08 at 11 42 32 AM" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/ea030612-1fe9-4bc3-9130-39b81217429a">
+
 Wander is a free android application that introduces an innovative, feature rich, assistant for vacation trip planning. The application leverages AI technology and Large Language Models to act as an intelligent travel planning guide. Recognizing the time-consuming nature of conventional travel planning, Wander aims to streamline this process by collecting location specific information along with user-specific preferences. The application is then able to facilitate efficient itinerary generation, taking into account factors such as travel season, interests, and suitability for different ranges of families. With the integration of AI and informative travel data APIs, Wander promises to provide users with effortless yet personalized travel experiences.
 
 ## Installation Instructions
@@ -28,8 +29,9 @@ To be able to run the application as intended, TripAdvisor and OpenAI API keys a
 
 
 - By click Send Request, an intelligent suggustion list will be created.
-<img width="373" alt="04" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/54ea0b0c-594a-44ad-93b2-8602e05cbd6d">
-<img width="374" alt="05" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/979e3482-3d75-4548-8cba-116fc1bcbf04">
+<img width="366" alt="Screenshot 2023-12-08 at 11 42 32 AM" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/0cf4adcf-0302-4c83-83b4-61ffdefd431e">
+<img width="371" alt="Screenshot 2023-12-08 at 11 42 51 AM" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/12bc27e5-48a2-4e45-ad94-09822e6f54fc">
+
 
 - You can specify your preference in natural language to refine the suggestion list.
 <img width="373" alt="13" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/26ba2d56-9935-4a6a-8bd9-4ae6c0641879">
@@ -37,19 +39,21 @@ To be able to run the application as intended, TripAdvisor and OpenAI API keys a
 
 
 - Click Details button to check more information of a place.
-<img width="363" alt="06" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/7b37be46-85d5-429b-96be-e83de0430ba5">
-<img width="374" alt="07" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/9111979d-6209-417a-a829-7b34a7c2f9b7">
+<img width="381" alt="Screenshot 2023-12-08 at 10 59 53 AM" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/20e7ce5b-59fb-438f-8205-74a4a98cd006">
+<img width="384" alt="Screenshot 2023-12-08 at 11 07 18 AM" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/306cb3e3-7bba-4fc7-94c3-29498dd55e76">
+
 
 - Select items from the suggestion list and add them to the itinerary.
-<img width="382" alt="08" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/e2074f91-3ef3-4e2a-a667-d0657d026a0e">
+<img width="370" alt="Screenshot 2023-12-08 at 11 00 24 AM" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/9754719e-6d2c-4068-aede-70fab7c3b211">
+
 
 - Click Save to Phone button to save the itinerary locally. You can load it back from the phone anytime.
-<img width="373" alt="09" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/351537ab-3e3f-4ed0-987e-7d1a8ac38028">
 <img width="390" alt="01 copy" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/8e62dd88-d9e2-4e8e-a266-bfec4daa4712">
 
 - Send itinerary to your or your friends' email. Wander will send the itinerary as pdf to the mailbox.
  <img width="366" alt="10" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/356fa8dd-90ee-49f9-981d-3a1896d66c3a">
- <img width="608" alt="12" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/a60ccc2d-df92-434b-9852-785346e65a0c">
+<img width="874" alt="Screenshot 2023-12-08 at 11 14 40 AM" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/bbfd6409-7fd2-4adf-a0d5-076157a46787">
+
 
 ## Architecture
 <img width="785" alt="Screenshot 2023-12-06 at 10 46 03 AM" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/8ef60cf7-b758-425b-8752-5160f64b2f89">
