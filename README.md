@@ -14,6 +14,24 @@ To be able to run the application as intended, TripAdvisor and OpenAI API keys a
 
 
 ## Usage Instructions
+The application is designed to integrate both AI and traditional travel agent api to provide user
+intelligent and accurate travel suggestions. A User can use text/voice input to specify a travel
+location or a preference. A User can also provide one's current location by sharing the GPS
+sensor's data through a simple click. Based on the user input, the WanderApp calls a
+pre-trained chatGpt assistant API to get suggestions on places to visit. Once the app gets the
+suggestions, WanderApp calls the Tripadvisor(TA) Location Search API to find the matching
+location_id in TA's data for each place. Then the app calls the TA Photo Search API and
+open-meteo API to get photos, reviews, weather and other detailed information for each place.
+After verifying the information, a user can further apply more locations(for example: a city next to
+the current city) or preference (Good for kids, for example) to update the suggestions from
+chatGpt.
+A user can choose places from the suggestion list to add to one's itinerary, delete places from
+the itinerary. A user can save the itinerary to the phone's database. A user can load the saved
+itinerary from the database any time. A user can also send the itinerary to one's email.
+WanderApp sends a pdf file of the user's itinerary to the specified email address.
+
+**Note: The current version of Wander is limited by the data from ChatGPT and the TripAdvisor API, resulting in higher quality experiences only within locations in the United States.**
+
 - A User can use text/voice input to specify a travel location or a preference. 
 <img width="390" alt="01" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/c43f0f97-26f2-4a7a-8c89-25dec1b57889">
 
