@@ -233,7 +233,7 @@
                 android:layout_height="48dp"
                 android:layout_marginStart="18dp"
                 android:layout_marginEnd="24dp"
-                android:hint="Outdoor, Food, etc."
+                android:hint="Good for kids / Shopping /..."
                 app:layout_constraintBottom_toBottomOf="@+id/tvPreferences"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/tvPreferences"

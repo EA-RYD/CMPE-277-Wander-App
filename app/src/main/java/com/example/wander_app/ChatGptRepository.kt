@@ -1,118 +1,309 @@
 package com.tutorial.chatgptapp
 import android.util.Log
-import androidx.lifecycle.MutableLiveData
+import android.widget.Toast
+import com.example.wander_app.Suggestion
+import com.example.wander_app.SuggestionList
+import com.example.wander_app.parseAddress
+import com.example.wander_app.updateAddressInSuggestions
 import com.google.gson.Gson
+import com.google.gson.JsonParser
+import com.google.gson.JsonSyntaxException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import org.json.JSONException
+import org.json.JSONObject
 import java.io.IOException
 
 
-data class ChatMessage(val role: String, val content: String)
-data class ChatSession(val model: String, val messages: List<ChatMessage>)
+
 class ChatGptRepository() {
     val apiKey: String
-    val urlEndPoint: String
-    val session: MutableList<ChatMessage>
+    var chatGptTreadId: String
+    val chatGptAssistantId: String
 
     init {
-
-        apiKey = "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"
-
-        urlEndPoint = "https://api.openai.com/v1/chat/completions"
-        val jsonString =
-            """
-                {
-                    "model": "gpt-3.5-turbo",
-                    "messages": [
-                        {
-                            "role": "system",
-                            "content": "You are working as a module in an application to provide travel suggestions for the users. Your response should always in JSON format."
-                        },
-                        {
-                            "role": "system",
-                            "content": "Your Json respond should include exact 6 suggestions, and for each suggestion always include name, address, and longitude and latitude of the place and a short description(no more than 20 words)."
-                        },
-                        {
-                            "role": "system",
-                            "content": "User can provide a location or a type of activity."
-                        },
-                        {
-                            "role": "system",
-                            "content": "You can update the suggestion list, but stay with JSON format defined."
-                        }
-                    ]
-                }
-            """.trimIndent()
-
-        // Parse the JSON string
-        val gson = Gson()
-        val chatSession = gson.fromJson(jsonString, ChatSession::class.java)
-        session = chatSession.messages.toMutableList()
-        Log.i(">>", session.toString())
-
+        apiKey = ""
+        chatGptTreadId = "thread_JzagLk72OrIuw520JG7b9GvP"
+        chatGptAssistantId = "asst_yB7SSMUnQze5Ten1oKyNgjbH"
     }
 
-    fun addMessage(message: String) {
-        val newMessage = ChatMessage("user", message)
-        session.add(newMessage)
-        Log.i(">>addMessage", session.toString())
-    }
-    suspend fun makeApiRequest(): String {
-        return withContext(Dispatchers.IO) {
-            try {
-                Log.i(">>", "Sending request")
-                val client = OkHttpClient.Builder()
-                    .callTimeout(3, java.util.concurrent.TimeUnit.MINUTES)
-                    .readTimeout(3, java.util.concurrent.TimeUnit.MINUTES)
-                    .writeTimeout(3, java.util.concurrent.TimeUnit.MINUTES)
-                    .build()
-                val request = Request.Builder()
-                    .url(urlEndPoint)
-                    .header("Authorization", "Bearer $apiKey")
-                    .post(createRequestBody2(session))
-                    .build()
-                Log.i(">>", "Waiting for chatGPT's response, it may take a while...")
-                val response = client.newCall(request).execute()
-                try {
-                    if (response.isSuccessful) {
-                        val responseBodyString = response.body?.string()
-                        Log.i(">>", "Response: $responseBodyString")
+    fun callCreateThreadApi() {
+        Log.i(">>callCreateThreadApi", "callCreateThreadApi: starting..")
+        val client = OkHttpClient()
+        val url = "https://api.openai.com/v1/threads/runs"
 
-                        responseBodyString ?: "Empty response"
-                    } else {
-                        "Request failed with code: ${response.code}"
-                    }
-                } finally {
-                    response.close()
-                }
-            } catch (e: IOException) {
-                Log.e("ChatGptRepository", "Network error: ${e.message}")
-                "Network error: ${e.message}"
+        val mediaType = "application/json; charset=utf-8".toMediaType()
+        val body = """
+        {
+            "assistant_id":"$chatGptAssistantId",
+            "thread": {
+                "messages": [
+                    {"role": "user", "content":"You are working as a module in an application to provide travel suggestions for the users. Your response should always be in a strictly JSON format.Your Json response should include exactly 6 suggestions, and for each suggestion always include name, alias, address(should not be none and street address comes first), and longitude and latitude of the place and a short description(no more than 30 words). Users can provide a travel location or preference. If a later travel Location comes in, use the later location  and ignore the previous ones. Stay with the defined json format. Use address information(if not nan) in the uploaded file if the travel location is San Diego. Don't add any other text besides the json string"}
+                ]
             }
         }
+    """.trimIndent().toRequestBody(mediaType)
+
+        val request = Request.Builder()
+            .url(url)
+            .addHeader("Authorization", "Bearer $apiKey")
+            .addHeader("Content-Type", "application/json")
+            .addHeader("OpenAI-Beta", "assistants=v1")
+            .post(body)
+            .build()
+
+        client.newCall(request).enqueue(object : okhttp3.Callback {
+            override fun onFailure(call: okhttp3.Call, e: IOException) {
+                e.printStackTrace()
+            }
+
+            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                var responseBodyString = ""
+                if (!response.isSuccessful) {
+                    responseBodyString = response.body?.string().toString()
+//                   Log.i(">>callCreateThreadApi", "Fail Response: $responseBodyString")
+
+                } else {
+                    responseBodyString = response.body?.string().toString()
+//                    Log.i(">>callCreateThreadApi", "Success Response: $responseBodyString")
+                    chatGptTreadId = getThreadIdFromResponse(responseBodyString!!).toString()
+                    Log.i(">>callCreateThreadApi", "chatGptTreadId: $chatGptTreadId")
+                }
+            }
+        })
     }
 
 
-    private fun createRequestBody2(session:MutableList<ChatMessage>): okhttp3.RequestBody {
-        val messagesArray = session.map { chatMessage ->
-            mapOf(
-                "role" to chatMessage.role,
-                "content" to chatMessage.content
-            )
+    fun getThreadIdFromResponse(response: String): String? {
+        try {
+            val jsonObject = JSONObject(response)
+            return jsonObject.optString("thread_id", null) // Returns null if the key is not found
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
+        }
+    }
+    fun callSendMessageApi(message:String) {
+        val client = OkHttpClient()
+
+        val json = "application/json; charset=utf-8".toMediaTypeOrNull()
+        val body = RequestBody.create(json, """
+        {
+            "role": "user",
+            "content": "$message"
+        }
+    """.trimIndent())
+        val request = Request.Builder()
+            .url("https://api.openai.com/v1/threads/$chatGptTreadId/messages")
+            .post(body)
+            .addHeader("Content-Type", "application/json")
+            .addHeader("Authorization", "Bearer $apiKey")
+            .addHeader("OpenAI-Beta", "assistants=v1")
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e(">>callSendMessageApi", "API call failed", e)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+//                Log.i(">>callSendMessageApi", "Response: ${response.body?.string()}")
+            }
+        })
+    }
+
+    fun callRunMessage() {
+        val client = OkHttpClient()
+
+        val jsonMediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
+        val requestBody = RequestBody.create(jsonMediaType, """
+        {
+            "assistant_id": "$chatGptAssistantId"
+        }
+        """.trimIndent())
+
+        val request = Request.Builder()
+            .url("https://api.openai.com/v1/threads/$chatGptTreadId/runs")
+            .post(requestBody)
+            .addHeader("Authorization", "Bearer $apiKey")
+            .addHeader("Content-Type", "application/json")
+            .addHeader("OpenAI-Beta", "assistants=v1")
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                // Handle the failure case
+                Log.e(">>callRunMessage", "API call failed", e)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                // Handle the successful response
+//                Log.i(">>callRunMessage", "Response: ${response.body?.string()}")
+            }
+        })
+    }
+
+    fun initialRetrieveApi() {
+        val client = OkHttpClient()
+
+        // Define a recursive function for repeated calls
+        fun makeApiCall() {
+            val request = Request.Builder()
+                .url("https://api.openai.com/v1/threads/$chatGptTreadId/messages")
+                .get()  // Since we're retrieving data, we use GET
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Authorization", "Bearer $apiKey")
+                .addHeader("OpenAI-Beta", "assistants=v1")
+                .build()
+
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    // Log the error
+                    Log.e(">>callRetrieveApi", "API call failed", e)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.isSuccessful) {
+                        Log.i(">>callRetrieveApi", "Response: ${response.body?.string()}")
+                    }
+                }
+            })
+        }
+    }
+    fun callRetrieveApi(onFinish: (SuggestionList) -> Unit) {
+        val client = OkHttpClient()
+
+        // Define a recursive function for repeated calls
+        fun makeApiCall() {
+            val request = Request.Builder()
+                .url("https://api.openai.com/v1/threads/$chatGptTreadId/messages")
+                .get()  // Since we're retrieving data, we use GET
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Authorization", "Bearer $apiKey")
+                .addHeader("OpenAI-Beta", "assistants=v1")
+                .build()
+
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    // Log the error
+                    Log.e(">>callRetrieveApi", "API call failed", e)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.isSuccessful) {
+                        response.body?.string()?.let { responseData ->
+                            try {
+                                val jsonObject = JSONObject(responseData)
+                                val dataArray = jsonObject.getJSONArray("data")
+                                if (dataArray.length() > 0) {
+                                    val firstMessageObject = dataArray.getJSONObject(0)
+                                    val role = firstMessageObject.getString("role")
+
+                                    val contentArray = firstMessageObject.getJSONArray("content")
+                                    if (contentArray.length() > 0) {
+                                        val firstContentObject = contentArray.getJSONObject(0)
+                                        val textObject = firstContentObject.getJSONObject("text")
+                                        val value = textObject.getString("value")
+
+                                        CoroutineScope(Dispatchers.Main).launch {
+                                            if (value.isNotEmpty() && role == "assistant"){
+//                                                Log.i(">>callRetrieveApi", "Value: $value")
+
+                                                // put suggestion to the raw suggestion list
+                                                val suggestions = convertJsonToSuggestionList(value)
+                                                onFinish(suggestions!!)
+                                                Log.i(">>callRetrieveApi", "Suggestion: $suggestions")
+                                            } else {
+                                                Log.i(">>callRetrieveApi", "No valid response come back")
+                                            }
+                                        }
+                                    } else {
+
+                                    }
+
+                                } else { }
+                            } catch (e: JSONException) {
+                                Log.e(">>callRetrieveApi", "JSON parsing error", e)
+                            }
+                        }
+                    } else {
+//                        Log.e(">>callRetrieveApi", "API call was not successful, Response JSON: ${response.body?.string()}")
+                    }
+                }
+            })
         }
 
-        val json = mapOf(
-            "model" to "gpt-3.5-turbo",
-            "messages" to messagesArray
-        )
-
-        val jsonString = Gson().toJson(json)
-        Log.i("ChatGptRepository", "Request body: $jsonString")
-        return jsonString.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+        // Initial API call
+        makeApiCall()
     }
 
+
+    private fun parseMessageList(jsonString: String): ApiResponse {
+        val gson = Gson()
+        return gson.fromJson(jsonString, ApiResponse::class.java)
+    }
+
+    data class ApiResponse(
+        val _object: String,
+        val data: List<Message>,
+    )
+    data class Message(
+        val id: String,
+        val _object: String,
+        val createdAt: Long,
+        val threadId: String,
+        val role: String,
+        val content: List<Content>,
+        // include other fields as needed
+    )
+
+    data class Content(
+        val type: String,
+        val text: TextContent,
+    )
+    data class TextContent(
+        val value: String,
+        // include other fields as needed
+    )
+
+    fun convertJsonToSuggestionList(jsonString: String): SuggestionList? {
+        try {
+            // Extract the JSON array from the wrapped string
+            Log.i(">>convertJsonToSuggestionList", "jsonString: $jsonString")
+            val jsonString1 = jsonString.removePrefix("```json\n").removeSuffix("\n```")
+            val jsonObject = JsonParser.parseString(jsonString1).asJsonObject
+            Log.i(">>convertJsonToSuggestionList", "jsonObject: $jsonObject")
+            val suggestionsJson = jsonObject.getAsJsonArray("suggestions")
+            Log.i(">>convertJsonToSuggestionList", "suggestionsJson: $suggestionsJson.toString()")
+
+            // Deserialize the JSON array to List<Suggestion>
+            val suggestions = Gson().fromJson(suggestionsJson, Array<Suggestion>::class.java).toList()
+            // Create a SuggestionList and update additional fields
+            val suggestionList = SuggestionList(suggestions.map { suggestion ->
+                suggestion.apply {
+                    imgUrl = "" // Set default or compute value
+                    isChecked = false // Default value
+                    btnEnabled = false // Default value
+                }
+            })
+            updateAddressInSuggestions(suggestionList)
+            Log.i(">>convertJsonToSuggestionList", "suggestionList: $suggestionList")
+
+            return suggestionList
+
+        } catch (e: JsonSyntaxException) {
+            e.printStackTrace()
+            return null
+        }
+    }
 }

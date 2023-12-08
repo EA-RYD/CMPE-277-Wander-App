@@ -15,6 +15,8 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.os.Bundle;
 import android.Manifest;
@@ -34,6 +36,11 @@ import com.example.wander_app.models.LocationPDF;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.tutorial.chatgptapp.ChatGptRepository;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -45,6 +52,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+
+import kotlin.Unit;
 
 public class MainActivity extends AppCompatActivity {
     FusedLocationProviderClient fusedLocationProviderClient;
@@ -59,7 +68,14 @@ public class MainActivity extends AppCompatActivity {
     private Database db;
 
     private final String TRIP_ADVISOR_LOCATION_ENDPOINT = "https://api.content.tripadvisor.com/api/v1/location";
+    private ChatGptRepository gpt = new ChatGptRepository();
+    private Handler handler = new Handler(Looper.getMainLooper());
 
+
+    private Unit onCallRetrieveApiFinishKotlin(SuggestionList suggestionList) {
+        viewModel.getRawSuggestionList().postValue(suggestionList);
+        return Unit.INSTANCE;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,8 +86,6 @@ public class MainActivity extends AppCompatActivity {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         registerReceiver(apiReceiver, new IntentFilter(
                 APIRequestService.Broadcast_id));
-//        boolean result = this.deleteDatabase("itinerary");
-//        Log.i(">>MainActivity", "onCreate: Delete Database " + result);
         db = Room.databaseBuilder(
                 this,
                 Database.class,
@@ -81,17 +95,66 @@ public class MainActivity extends AppCompatActivity {
 
         viewModel = new ViewModelProvider(this).get(MainViewModel.class);
         loadIndicator = findViewById(R.id.loadingBar);
+        gpt = new ChatGptRepository();
+
+        //Create a new chatGPT thread
+//        gpt.callCreateThreadApi();
+//        loadIndicator.setVisibility(View.VISIBLE);
+//
+//        handler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                gpt.callSendMessageApi("You are working as a module in an application to provide travel suggestions for the users. Your response should always be in valid JSON format.Your Json response should include exactly 6 suggestions, and for each suggestion always include name, address(should not be none and street address comes first), and longitude and latitude of the place and a short description(no more than 30 words). Users can provide a travel location or preference. If a later travel Location comes in, use the later location  and ignore the previous ones. Stay with the defined json format. Use address information(if not nan) in the uploaded file only if the travel location is San Diego. You should always strictly follow this format requirement. Json response should always have every key and value specified here.");
+//                gpt.callSendMessageApi("You have full access to the uploaded files. Do not reply any thing else except the json required.");
+//            }
+//        }, 5000);
+//        handler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                gpt.callRunMessage();
+//                loadIndicator.setVisibility(View.INVISIBLE);
+//            }
+//        }, 5000);
+
+
+//        handler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                gpt.initialRetrieveApi();
+//                loadIndicator.setVisibility(View.INVISIBLE);
+//            }
+//        }, 15000);
 
 
         binding.btnSendRequest.setOnClickListener(v -> {
             loadIndicator.setVisibility(View.VISIBLE);
-            viewModel.updateMessage(binding.etLocation.getText().toString());
+            String locationText = binding.etLocation.getText().toString();
+            if (!locationText.isEmpty()) {
+                gpt.callSendMessageApi("My travel location is " + locationText + ". Your suggestions should within this city. Your response must follow the json format defined in the instruction");
+            }
             String preferenceText = binding.etPreference.getText().toString();
             if (!preferenceText.isEmpty()) {
-                viewModel.updateMessage(preferenceText);
+                gpt.callSendMessageApi("My preference is " + preferenceText + ". Your response must be has 6 suggest locations without duplication, try to include new locations. Make sure the response is in valid json format defined without any other comments.");
             }
             Toast.makeText(this, "Request sent!", Toast.LENGTH_SHORT).show();
-            viewModel.sendRequest();
+//            binding.etLocation.setText("");
+            binding.etPreference.setText("");
+
+
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    gpt.callRunMessage();
+                }
+            }, 3000);
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    // Call the retrieve API method after 20 seconds
+                    gpt.callRetrieveApi(suggestionList -> onCallRetrieveApiFinishKotlin(suggestionList));
+                }
+            }, 20000); // 20 seconds
+
         });
 
         binding.btnCurrentLocation.setOnClickListener(v -> {
@@ -136,9 +199,9 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this,"Itinerary saved!", Toast.LENGTH_SHORT).show();
         });
 
-        viewModel.getResponse().observe(this, response -> {
-            Log.i("MainActivity", "onCreate: " + response);
-        });
+//        viewModel.getResponse().observe(this, response -> {
+//            Log.i("MainActivity", "onCreate: " + response);
+//        });
 
         viewModel.getRawSuggestionList().observe(this, suggestionList -> {
             Log.i("MainActivity", "onCreate: " + suggestionList);
@@ -153,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
                             makeTAPhotoApiCalls(items);
                         }
                     },
-                    15000);
+                    16000);
 
         });
 
@@ -247,32 +310,32 @@ public class MainActivity extends AppCompatActivity {
                     String apiType = intent.getStringExtra("apiType");
                     Log.i(">>Receiver", "Suggestion ID: " + suggestionId);
                     if (apiType.equals("TripAdvisor_Search")) {
-                        Log.i(">>Receiver", "Search Response: " + response);
+//                        Log.i(">>Receiver", "Search Response: " + response);
                         TASearchItem taSearchItem = new TASearchItem(suggestionId, "0000");
                         if (response.has("data")) {
                             JSONArray dataArray = response.getJSONArray("data");
                             if (dataArray.length() > 0) {
-                                JSONObject data = null;
+                                JSONObject bestMatch = null;
+                                int lowestDistance = Integer.MAX_VALUE;
                                 // New logic to find the matching name
                                 String locationName = viewModel.getSuggestionList().getValue().getSuggestions().get(Integer.parseInt(suggestionId)).getName();
                                 for (int i = 0; i < dataArray.length(); i++) {
                                     JSONObject tempObj = dataArray.getJSONObject(i);
-                                    String name = tempObj.getString("name");
-                                    if (tempObj.has("name") && (name.equals(locationName) || name.contains(locationName) || locationName.contains(name))) {
-                                        Log.i(">>Receiver", "Found matching name: " + tempObj.getString("name"));
-                                        data = tempObj;
-                                        break;
+                                    int distance = LevenshteinDistance.computeDistance(tempObj.getString("name"), locationName);
+                                    if (distance < lowestDistance) {
+                                        lowestDistance = distance;
+                                        bestMatch = tempObj;
                                     }
                                 }
 
                                 // Default to first item if no match is found
-                                if (data == null) {
-                                    data = dataArray.getJSONObject(0);
+                                if (bestMatch == null) {
+                                    bestMatch = dataArray.getJSONObject(0);
                                 }
 
-                                Log.i(">>Receiver", "Search Data: " + data.toString());
-                                if (data.has("location_id")) {
-                                    String locationId = data.getString("location_id");
+                                Log.i(">>Receiver", "Search Data: " + bestMatch.toString());
+                                if (bestMatch.has("location_id")) {
+                                    String locationId = bestMatch.getString("location_id");
                                     //update location id in the taPhotoResult
                                     viewModel.updatePhotoItemLocationId(Integer.parseInt(suggestionId), locationId);
                                     for (TAPhotoItem item : viewModel.getTaPhotoResult().getValue()) {
@@ -294,7 +357,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                     if (apiType.equals("photos")) {
                         //                    taPhotoItems[Integer.parseInt(suggestionId)].setResponseString(response.toString());
-                        Log.i(">>Receiver", "Photo Response: " + response);
+//                        Log.i(">>Receiver", "Photo Response: " + response);
+                        loadIndicator.setVisibility(View.INVISIBLE);
                         //update photo item response string
                         viewModel.updatePhotoItemResponseString(Integer.parseInt(suggestionId), response.toString());
                         for (TAPhotoItem item : viewModel.getTaPhotoResult().getValue()) {
@@ -307,7 +371,6 @@ public class MainActivity extends AppCompatActivity {
                             if (data.has("images")) {
                                 JSONObject images = data.getJSONObject("images");
                                 if (images.has("medium")) {
-                                    loadIndicator.setVisibility(View.INVISIBLE);
                                     JSONObject mediumImage = images.getJSONObject("medium");
                                     String imageUrl = mediumImage.getString("url");
                                     viewModel.updatePhotoItemImgUrl(Integer.parseInt(suggestionId), imageUrl);
@@ -324,22 +387,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
-
-    private String coordEncoder(String coords) {
-        String cleanedCoordinates = coords.replaceAll("[^0-9,.\\-]", "").replaceAll("\\s", "");
-
-        // Remove trailing commas
-        cleanedCoordinates = cleanedCoordinates.replaceAll(",$", "");
-
-        try {
-            String encodedCoordinates = URLEncoder.encode(cleanedCoordinates, "UTF-8");
-            System.out.println("Encoded Coordinates: " + encodedCoordinates);
-            return encodedCoordinates;
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return "";
-    }
 
     public static String encodeAddress(String address) {
         try {
@@ -463,8 +510,9 @@ public class MainActivity extends AppCompatActivity {
         viewModel.resetPhotoResult();
         for (int i = 0; i < suggestionList.getSuggestions().size(); i++) {
             Suggestion item = suggestionList.getSuggestions().get(i);
-            String longitude = item.getLongitude();
-            String latitude = item.getLatitude();
+            String longitude = clean_coordinate(item.getLongitude());
+            String latitude = clean_coordinate(item.getLatitude());
+            Log.i(">>MainActivity", "makeTASearchApiCalls: " + longitude + ", " + latitude);
             String street = item.getStreetAddress();
             String suggestionId = String.valueOf(i);
             try {
@@ -473,6 +521,12 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+    }
+
+    private String clean_coordinate(String coordinate) {
+        String clean_coordinate = coordinate.replaceAll("[^\\d.-]|°|N|S|E|W|\\s+", "");
+        Log.i(">>MainActivity", "clean_coordinate: " + clean_coordinate);
+        return clean_coordinate;
     }
 
     private void makeTAPhotoApiCalls(ArrayList<TASearchItem> searchItems) {
@@ -502,7 +556,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Making endpoint for search from coordinates
         String encodedAddress = encodeAddress(street);
-        String searchEP = TRIP_ADVISOR_LOCATION_ENDPOINT + "/" + "nearby_search?latLong=" + coordEncoder(latitude + ", " + longitude) + "&key="
+        String searchEP = TRIP_ADVISOR_LOCATION_ENDPOINT + "/" + "nearby_search?latLong=" + latitude + "%2C" + longitude + "&key="
                 + tripAdvisorKey + "&address=" + encodedAddress + "&language=en";
         Log.i(">>MainActivity", "makeSearchRequest: " + searchEP);
         intentTA.putExtra("callerID", ID);
@@ -533,3 +587,5 @@ public class MainActivity extends AppCompatActivity {
         return tv.getText().toString();
     }
 }
+
+
