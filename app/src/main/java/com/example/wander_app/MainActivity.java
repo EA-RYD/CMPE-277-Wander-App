@@ -97,17 +97,13 @@ public class MainActivity extends AppCompatActivity {
         loadIndicator = findViewById(R.id.loadingBar);
         gpt = new ChatGptRepository();
 
+
+//        loadIndicator.setVisibility(View.VISIBLE);
         //Create a new chatGPT thread
 //        gpt.callCreateThreadApi();
-//        loadIndicator.setVisibility(View.VISIBLE);
-//
-//        handler.postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                gpt.callSendMessageApi("You are working as a module in an application to provide travel suggestions for the users. Your response should always be in valid JSON format.Your Json response should include exactly 6 suggestions, and for each suggestion always include name, address(should not be none and street address comes first), and longitude and latitude of the place and a short description(no more than 30 words). Users can provide a travel location or preference. If a later travel Location comes in, use the later location  and ignore the previous ones. Stay with the defined json format. Use address information(if not nan) in the uploaded file only if the travel location is San Diego. You should always strictly follow this format requirement. Json response should always have every key and value specified here.");
-//                gpt.callSendMessageApi("You have full access to the uploaded files. Do not reply any thing else except the json required.");
-//            }
-//        }, 5000);
+//        Toast.makeText(this, "Starting a new chatGpt thread...", Toast.LENGTH_SHORT).show();
+
+
 //        handler.postDelayed(new Runnable() {
 //            @Override
 //            public void run() {
@@ -129,24 +125,36 @@ public class MainActivity extends AppCompatActivity {
         binding.btnSendRequest.setOnClickListener(v -> {
             loadIndicator.setVisibility(View.VISIBLE);
             String locationText = binding.etLocation.getText().toString();
-            if (!locationText.isEmpty()) {
-                gpt.callSendMessageApi("My travel location is " + locationText + ". Your suggestions should within this city. Your response must follow the json format defined in the instruction");
-            }
             String preferenceText = binding.etPreference.getText().toString();
-            if (!preferenceText.isEmpty()) {
-                gpt.callSendMessageApi("My preference is " + preferenceText + ". Your response must be has 6 suggest locations without duplication, try to include new locations. Make sure the response is in valid json format defined without any other comments.");
-            }
-            Toast.makeText(this, "Request sent!", Toast.LENGTH_SHORT).show();
-//            binding.etLocation.setText("");
-            binding.etPreference.setText("");
-
-
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    gpt.callRunMessage();
+            if (gpt.getChatGptTreadId().isEmpty()) {
+                Toast.makeText(this, "Starting a new chatGpt thread...", Toast.LENGTH_SHORT).show();
+                if (!locationText.isEmpty()) {gpt.addMessage("My travel location is " + locationText + ". Your suggestions should within this city. Your response must follow the json format defined in the instruction");}
+                if (!preferenceText.isEmpty()) {gpt.addMessage("My preference is " + preferenceText + ". Your response must be has 6 suggest locations without duplication, try to include new locations. Make sure the response is in valid json format defined without any other comments.");}
+                gpt.callCreateThreadApi();
+            } else {
+                String userRequest = "";
+                if (!locationText.isEmpty()) {
+                    userRequest +=  "My travel location is " + locationText + ". Your suggestions should within this city. Your response must follow the json format defined in the instruction. ";
                 }
-            }, 3000);
+                if (!preferenceText.isEmpty()) {
+                    userRequest += "My preference is " + preferenceText + ". Your response must be has 6 suggest locations without duplication, try to include new locations. Make sure the response is in valid json format defined without any other comments.";
+                }
+                if (!userRequest.isEmpty()) {
+                    Log.i(">>MainActivity", "Add Message:" + userRequest);
+                    gpt.callSendMessageApi(userRequest);
+                }
+                Toast.makeText(this, "Request sent!", Toast.LENGTH_SHORT).show();
+//            binding.etLocation.setText("");
+                binding.etPreference.setText("");
+
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        gpt.callRunMessage();
+                    }
+                }, 6000);
+            }
+
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override
                 public void run() {

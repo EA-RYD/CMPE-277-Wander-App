@@ -30,29 +30,39 @@ class ChatGptRepository() {
     val apiKey: String
     var chatGptTreadId: String
     val chatGptAssistantId: String
+    var initialMessage: String
 
     init {
         apiKey = ""
-        chatGptTreadId = "thread_JzagLk72OrIuw520JG7b9GvP"
+        chatGptTreadId = ""
         chatGptAssistantId = "asst_yB7SSMUnQze5Ten1oKyNgjbH"
+        initialMessage = """
+        {
+            "assistant_id":"$chatGptAssistantId",
+            "thread": {
+                "messages": [
+                    {"role": "user", "content":"You are working as a module in an application to provide travel suggestions for the users. Your response should always be in valid JSON format which include exactly 6 suggestions, and for each suggestion always include name, address(should not be none and street address comes first), and longitude and latitude and a short description(no more than 30 words). Stay with the defined json format strictly. Use address information(if not nan) in the uploaded file only if the travel location is San Diego."},
+                    {"role": "user", "content":"Json response should always have every key and value specified here. You have full access to the uploaded files. Do not reply any thing else except the json. I will send you the travel location and preference in the following messages, always based on the last location or preference to provide suggestion json."}
+                ]
+            }
+        }
+    """.trimIndent()
     }
 
+    fun addMessage(message: String) {
+        val stringBuilder = StringBuilder(initialMessage)
+        val newMessage = """{"role": "user", "content": "$message"}"""
+        val insertIndex = stringBuilder.lastIndexOf("]")
+        stringBuilder.insert(insertIndex, ",\n$newMessage")
+        initialMessage = stringBuilder.toString()
+    }
     fun callCreateThreadApi() {
         Log.i(">>callCreateThreadApi", "callCreateThreadApi: starting..")
         val client = OkHttpClient()
         val url = "https://api.openai.com/v1/threads/runs"
 
         val mediaType = "application/json; charset=utf-8".toMediaType()
-        val body = """
-        {
-            "assistant_id":"$chatGptAssistantId",
-            "thread": {
-                "messages": [
-                    {"role": "user", "content":"You are working as a module in an application to provide travel suggestions for the users. Your response should always be in a strictly JSON format.Your Json response should include exactly 6 suggestions, and for each suggestion always include name, alias, address(should not be none and street address comes first), and longitude and latitude of the place and a short description(no more than 30 words). Users can provide a travel location or preference. If a later travel Location comes in, use the later location  and ignore the previous ones. Stay with the defined json format. Use address information(if not nan) in the uploaded file if the travel location is San Diego. Don't add any other text besides the json string"}
-                ]
-            }
-        }
-    """.trimIndent().toRequestBody(mediaType)
+        val body = initialMessage.toRequestBody(mediaType)
 
         val request = Request.Builder()
             .url(url)
@@ -77,7 +87,7 @@ class ChatGptRepository() {
                     responseBodyString = response.body?.string().toString()
 //                    Log.i(">>callCreateThreadApi", "Success Response: $responseBodyString")
                     chatGptTreadId = getThreadIdFromResponse(responseBodyString!!).toString()
-                    Log.i(">>callCreateThreadApi", "chatGptTreadId: $chatGptTreadId")
+                    Log.i(">>callCreateThreadApi", "UpdatedChatGptTreadId: $chatGptTreadId")
                 }
             }
         })
