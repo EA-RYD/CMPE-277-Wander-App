@@ -13,7 +13,10 @@ Once a device is connected either via USB or Wifi, the device will have to be se
 To be able to run the application as intended, TripAdvisor and OpenAI API keys are required. These can be substituted into the variables named after them in the DetailsActivity and ChatGptRepository files respectively. 
 
 
-## Usage Instructions
+## Usage Instruction
+
+**Note: The current version of Wander is limited by the data from ChatGPT and the TripAdvisor API, resulting in higher quality experiences only within locations in the United States.**
+
 - A User can use text/voice input to specify a travel location or a preference. 
 <img width="390" alt="01" src="https://github.com/EA-RYD/CMPE-277-Wander-App/assets/70813818/c43f0f97-26f2-4a7a-8c89-25dec1b57889">
 
